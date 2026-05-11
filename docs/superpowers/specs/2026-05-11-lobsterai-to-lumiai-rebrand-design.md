@@ -1,8 +1,8 @@
-# Brand Rebrand Design: LobsterAI → LumiAi
+# Brand Rebrand Design: LumiAi → LumiAi
 
 ## Overview
 
-Replace all branding references from "LobsterAI" to "LumiAi" across the entire codebase.
+Replace all branding references from "LumiAi" to "LumiAi" across the entire codebase.
 
 ## Scope
 
@@ -16,14 +16,14 @@ Replace all branding references from "LobsterAI" to "LumiAi" across the entire c
 | source code | src/main/, src/renderer/ | String literals |
 | system prompts | sandbox/agent-runner/AGENT_SYSTEM_PROMPT.md | Brand references |
 | skills | SKILLs/ | Skill documentation |
-| URLs | GitHub links | netease-youdao/LobsterAI → netease-youdao/LumiAi |
+| URLs | GitHub links | netease-youdao/LumiAi → netease-youdao/LumiAi |
 
 ## Naming Convention
 
 - **Display name**: LumiAi (camelCase, retains AI suffix)
 - **Internal IDs**: lumiai (lowercase)
-- **Database**: lobsterai.sqlite → lumiai.sqlite
-- **Repository**: LobsterAI → LumiAi
+- **Database**: lumiai.sqlite → lumiai.sqlite
+- **Repository**: LumiAi → LumiAi
 
 ## Visual Assets
 
@@ -33,7 +33,7 @@ Icons and visual assets are **NOT** changed in this phase. The lobster mascot re
 
 Scripted bulk replacement followed by lint verification:
 
-1. Find all files containing "LobsterAI" or "lobsterai"
+1. Find all files containing "LumiAi" or "lumiai"
 2. Replace using case-sensitive matching
 3. Run `npm run lint` to verify
 4. Manual verification of critical files (package.json, electron-builder.json)

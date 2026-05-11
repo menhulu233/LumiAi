@@ -1,7 +1,7 @@
-# LobsterAI — All-in-One Personal Assistant Agent
+# LumiAi — All-in-One Personal Assistant Agent
 
 <p align="center">
-  <img src="public/logo.png" alt="LobsterAI" width="120">
+  <img src="public/logo.png" alt="LumiAi" width="120">
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 
 ---
 
-**LobsterAI** is an all-in-one personal assistant Agent developed by [NetEase Youdao](https://www.youdao.com/). It works around the clock to handle your everyday tasks — data analysis, making presentations, generating videos, writing documents, searching the web, sending emails, scheduling tasks, and more.
+**LumiAi** is an all-in-one personal assistant Agent developed by [NetEase Youdao](https://www.youdao.com/). It works around the clock to handle your everyday tasks — data analysis, making presentations, generating videos, writing documents, searching the web, sending emails, scheduling tasks, and more.
 
 At its core is **Cowork mode** — it executes tools, manipulates files, and runs commands in a local or sandboxed environment, all under your supervision. You can also chat with agent via Telegram, Discord, DingTalk or Feishu (Lark) and get work done from your phone anytime, anywhere.
 
@@ -57,8 +57,8 @@ At its core is **Cowork mode** — it executes tools, manipulates files, and run
 
 ```bash
 # Clone the repository
-git clone https://github.com/netease-youdao/LobsterAI.git
-cd lobsterai
+git clone https://github.com/netease-youdao/LumiAi.git
+cd lumiai
 
 # Install dependencies
 npm install
@@ -104,18 +104,18 @@ npm run dist:linux
 ```
 
 Windows builds bundle a portable Python runtime under `resources/python-win` (included as installer resource `python-win`), so end users do not need to install Python manually.
-The bundled runtime is interpreter-focused and does not preinstall LobsterAI skill Python packages; those can be installed at runtime on demand.
+The bundled runtime is interpreter-focused and does not preinstall LumiAi skill Python packages; those can be installed at runtime on demand.
 By default, packaging downloads the official Python embeddable runtime from python.org if no prebuilt archive is provided.
 For offline/non-network builds, provide a prebuilt runtime archive explicitly.
 
 Offline/runtime source options for packaging:
-- `LOBSTERAI_PORTABLE_PYTHON_ARCHIVE`: Local prebuilt runtime archive path (recommended for offline CI/CD)
-- `LOBSTERAI_PORTABLE_PYTHON_URL`: Download URL for the prebuilt runtime archive
-- `LOBSTERAI_WINDOWS_EMBED_PYTHON_VERSION` / `LOBSTERAI_WINDOWS_EMBED_PYTHON_URL` / `LOBSTERAI_WINDOWS_GET_PIP_URL`: Optional overrides for Windows-host bootstrap sources
+- `LUMIAI_PORTABLE_PYTHON_ARCHIVE`: Local prebuilt runtime archive path (recommended for offline CI/CD)
+- `LUMIAI_PORTABLE_PYTHON_URL`: Download URL for the prebuilt runtime archive
+- `LUMIAI_WINDOWS_EMBED_PYTHON_VERSION` / `LUMIAI_WINDOWS_EMBED_PYTHON_URL` / `LUMIAI_WINDOWS_GET_PIP_URL`: Optional overrides for Windows-host bootstrap sources
 
 ## Architecture
 
-LobsterAI uses Electron's strict process isolation. All cross-process communication goes through IPC.
+LumiAi uses Electron's strict process isolation. All cross-process communication goes through IPC.
 
 ### Process Model
 
@@ -179,7 +179,7 @@ SKILLs/                              # Skill definitions
 
 ## Cowork System
 
-Cowork is the core feature of LobsterAI — an AI working session system built on the Claude Agent SDK. Designed for productivity scenarios, it can autonomously complete complex tasks like data analysis, document generation, and information retrieval.
+Cowork is the core feature of LumiAi — an AI working session system built on the Claude Agent SDK. Designed for productivity scenarios, it can autonomously complete complex tasks like data analysis, document generation, and information retrieval.
 
 ### Execution Modes
 
@@ -205,7 +205,7 @@ All tool invocations involving file system access, terminal commands, or network
 
 ## Skills System
 
-LobsterAI ships with 16 built-in skills covering productivity, creative, and automation scenarios, configured via `SKILLs/skills.config.json`:
+LumiAi ships with 16 built-in skills covering productivity, creative, and automation scenarios, configured via `SKILLs/skills.config.json`:
 
 | Skill | Function | Typical Use Case |
 |-------|----------|-----------------|
@@ -230,7 +230,7 @@ Custom skills can be created via `skill-creator` and hot-loaded at runtime.
 
 ## Scheduled Tasks
 
-LobsterAI supports scheduled tasks that let the Agent automatically execute recurring work on a set schedule.
+LumiAi supports scheduled tasks that let the Agent automatically execute recurring work on a set schedule.
 
 ### How to Create
 
@@ -251,7 +251,7 @@ Scheduled tasks are powered by Cron expressions, supporting minute, hourly, dail
 
 ## IM Integration — Mobile Remote Control
 
-LobsterAI can bridge the Agent to multiple IM platforms. Send a message from your phone via IM to remotely trigger the desktop Agent — command your personal assistant anytime, anywhere.
+LumiAi can bridge the Agent to multiple IM platforms. Send a message from your phone via IM to remotely trigger the desktop Agent — command your personal assistant anytime, anywhere.
 
 | Platform | Protocol | Description |
 |----------|----------|-------------|
@@ -266,12 +266,12 @@ Configure the corresponding platform Token/Secret in the Settings panel to enabl
 
 ## Persistent Memory
 
-LobsterAI has a built-in memory system that remembers your personal information and preferences across sessions, making the Agent more helpful the more you use it.
+LumiAi has a built-in memory system that remembers your personal information and preferences across sessions, making the Agent more helpful the more you use it.
 
 ### How Memories Are Captured
 
 - **Automatic Extraction** — During conversations, the system automatically identifies and stores your personal details (name, occupation), preferences (language, format, style), and personal facts (pets, tools you use) — no manual effort required
-- **Explicit Requests** — Tell the Agent directly, e.g., "remember that I prefer Markdown format" or "note down that my project is called LobsterAI," and it will store the memory with higher confidence
+- **Explicit Requests** — Tell the Agent directly, e.g., "remember that I prefer Markdown format" or "note down that my project is called LumiAi," and it will store the memory with higher confidence
 - **Manual Management** — Add, edit, or delete memory entries in the Memory management panel within Settings
 
 ### How It Works
@@ -299,7 +299,7 @@ Extracted memories are automatically deduplicated and merged, then injected into
 
 ## Data Storage
 
-All data is stored in a local SQLite database (`lobsterai.sqlite` in the user data directory).
+All data is stored in a local SQLite database (`lumiai.sqlite` in the user data directory).
 
 | Table | Purpose |
 |-------|---------|
@@ -311,7 +311,7 @@ All data is stored in a local SQLite database (`lobsterai.sqlite` in the user da
 
 ## Security Model
 
-LobsterAI enforces security at multiple layers:
+LumiAi enforces security at multiple layers:
 
 - **Process Isolation** — Context isolation enabled, node integration disabled
 - **Permission Gating** — Tool invocations require explicit user approval
@@ -379,7 +379,7 @@ Please include in your PR description: a summary of changes, linked issue (if an
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=netease-youdao/LobsterAI&type=date&legend=top-left)](https://www.star-history.com/#netease-youdao/LobsterAI&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=netease-youdao/LumiAi&type=date&legend=top-left)](https://www.star-history.com/#netease-youdao/LumiAi&type=date&legend=top-left)
 
 ---
 

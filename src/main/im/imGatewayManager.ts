@@ -1415,7 +1415,7 @@ export class IMGatewayManager extends EventEmitter {
     // Use a unique temporary data path to avoid file-lock conflicts.
     const tmpDataPath = path.join(
       os.tmpdir(),
-      `lobsterai-nim-probe-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      `lumiai-nim-probe-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     );
     fs.mkdirSync(tmpDataPath, { recursive: true });
 

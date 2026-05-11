@@ -67,7 +67,7 @@ function buildSkillServiceEnv(): Record<string, string | undefined> {
 
   // Expose Electron executable so skill scripts can run JS with ELECTRON_RUN_AS_NODE
   // even when system Node.js is not installed.
-  env.LOBSTERAI_ELECTRON_PATH = electronNodeRuntimePath;
+  env.LUMIAI_ELECTRON_PATH = electronNodeRuntimePath;
   appendPythonRuntimeToEnv(env);
 
   return env;
@@ -341,7 +341,7 @@ export class SkillServiceManager {
     const env = {
       ...baseEnv,
       ...(runtime.extraEnv ?? {}),
-      LOBSTERAI_ELECTRON_PATH: electronNodeRuntimePath,
+      LUMIAI_ELECTRON_PATH: electronNodeRuntimePath,
     };
 
     // Node/Electron validates stdio streams synchronously. Use fd to avoid

@@ -33,7 +33,7 @@ const SANDBOX_ALLOWED_ENV_KEYS = [
   'ANTHROPIC_AUTH_TOKEN',
   'ANTHROPIC_API_KEY',
   'ANTHROPIC_BASE_URL',
-  'LOBSTERAI_API_BASE_URL',
+  'LUMIAI_API_BASE_URL',
   'ANTHROPIC_MODEL',
   'HTTP_PROXY',
   'HTTPS_PROXY',
@@ -100,7 +100,7 @@ const TOOL_INPUT_PREVIEW_MAX_DEPTH = 5;
 const TOOL_INPUT_PREVIEW_MAX_KEYS = 60;
 const TOOL_INPUT_PREVIEW_MAX_ITEMS = 30;
 const SKILLS_MARKER = '/skills/';
-const TASK_WORKSPACE_CONTAINER_DIR = '.lobsterai-tasks';
+const TASK_WORKSPACE_CONTAINER_DIR = '.lumiai-tasks';
 const PERMISSION_RESPONSE_TIMEOUT_MS = 60_000;
 const DELETE_TOOL_NAMES = new Set(['delete', 'remove', 'unlink', 'rmdir']);
 const SAFETY_APPROVAL_ALLOW_OPTION = '允许本次操作';
@@ -1002,7 +1002,7 @@ export class CoworkRunner extends EventEmitter {
     };
 
     pushCandidate(env.SKILLS_ROOT);
-    pushCandidate(env.LOBSTERAI_SKILLS_ROOT);
+    pushCandidate(env.LUMIAI_SKILLS_ROOT);
     for (const root of this.extractHostSkillRootsFromPrompt(systemPrompt)) {
       pushCandidate(root);
     }
@@ -1196,7 +1196,7 @@ export class CoworkRunner extends EventEmitter {
       if (
         (key.toLowerCase().includes('proxy') && !key.toLowerCase().includes('no_proxy'))
         || key === 'ANTHROPIC_BASE_URL'
-        || key === 'LOBSTERAI_API_BASE_URL'
+        || key === 'LUMIAI_API_BASE_URL'
       ) {
         sandboxEnv[key] = remapLocalhostToQemuGateway(value);
       } else {
@@ -1218,7 +1218,7 @@ export class CoworkRunner extends EventEmitter {
 
     if (guestSkillsRoot) {
       sandboxEnv.SKILLS_ROOT = guestSkillsRoot;
-      sandboxEnv.LOBSTERAI_SKILLS_ROOT = guestSkillsRoot;
+      sandboxEnv.LUMIAI_SKILLS_ROOT = guestSkillsRoot;
     }
     sandboxEnv.WEB_SEARCH_SERVER = 'http://10.0.2.2:8923';
 
@@ -1229,7 +1229,7 @@ export class CoworkRunner extends EventEmitter {
       '10.0.2.2',
     ];
     const anthropicHost = extractHostFromUrl(sandboxEnv.ANTHROPIC_BASE_URL);
-    const internalApiHost = extractHostFromUrl(sandboxEnv.LOBSTERAI_API_BASE_URL);
+    const internalApiHost = extractHostFromUrl(sandboxEnv.LUMIAI_API_BASE_URL);
     const webSearchHost = extractHostFromUrl(sandboxEnv.WEB_SEARCH_SERVER);
     if (anthropicHost) noProxyHosts.push(anthropicHost);
     if (internalApiHost) noProxyHosts.push(internalApiHost);
@@ -2844,12 +2844,12 @@ export class CoworkRunner extends EventEmitter {
 
     // Log MCP-relevant environment for debugging
     coworkLog('INFO', 'runClaudeCodeLocal', `MCP env: isPackaged=${app.isPackaged}, platform=${process.platform}, arch=${process.arch}`);
-    coworkLog('INFO', 'runClaudeCodeLocal', `MCP env: LOBSTERAI_ELECTRON_PATH=${envVars.LOBSTERAI_ELECTRON_PATH || '(not set)'}`);
+    coworkLog('INFO', 'runClaudeCodeLocal', `MCP env: LUMIAI_ELECTRON_PATH=${envVars.LUMIAI_ELECTRON_PATH || '(not set)'}`);
     coworkLog('INFO', 'runClaudeCodeLocal', `MCP env: ELECTRON_RUN_AS_NODE=${envVars.ELECTRON_RUN_AS_NODE || '(not set)'}`);
     coworkLog('INFO', 'runClaudeCodeLocal', `MCP env: NODE_PATH=${envVars.NODE_PATH || '(not set)'}`);
     coworkLog('INFO', 'runClaudeCodeLocal', `MCP env: HOME=${envVars.HOME || '(not set)'}`);
     coworkLog('INFO', 'runClaudeCodeLocal', `MCP env: TMPDIR=${envVars.TMPDIR || '(not set)'}`);
-    coworkLog('INFO', 'runClaudeCodeLocal', `MCP env: LOBSTERAI_NPM_BIN_DIR=${envVars.LOBSTERAI_NPM_BIN_DIR || '(not set)'}`);
+    coworkLog('INFO', 'runClaudeCodeLocal', `MCP env: LUMIAI_NPM_BIN_DIR=${envVars.LUMIAI_NPM_BIN_DIR || '(not set)'}`);
     coworkLog('INFO', 'runClaudeCodeLocal', `MCP env: claudeCodePath=${claudeCodePath}`);
     // Log full PATH split by delimiter
     const pathEntries = (envVars.PATH || '').split(path.delimiter);
@@ -2869,8 +2869,8 @@ export class CoworkRunner extends EventEmitter {
     // On Windows, check that git-bash is available before attempting to start.
     // Claude Code CLI requires git-bash for shell tool execution.
     if (process.platform === 'win32' && !envVars.CLAUDE_CODE_GIT_BASH_PATH) {
-      const bashResolutionDiagnostic = typeof envVars.LOBSTERAI_GIT_BASH_RESOLUTION_ERROR === 'string'
-        ? envVars.LOBSTERAI_GIT_BASH_RESOLUTION_ERROR.trim()
+      const bashResolutionDiagnostic = typeof envVars.LUMIAI_GIT_BASH_RESOLUTION_ERROR === 'string'
+        ? envVars.LUMIAI_GIT_BASH_RESOLUTION_ERROR.trim()
         : '';
       const errorMsg = 'Windows local execution requires a healthy Git Bash runtime, but no valid bash was resolved. '
         + 'This may be caused by missing bundled PortableGit or a conflicting system bash that cannot run cygpath. '
@@ -3017,15 +3017,15 @@ export class CoworkRunner extends EventEmitter {
         const useElectronShim =
           process.platform === 'win32'
           || isPackagedDarwin
-          || spawnOptions.env?.LOBSTERAI_NODE_SHIM_ACTIVE === '1';
+          || spawnOptions.env?.LUMIAI_NODE_SHIM_ACTIVE === '1';
         const spawnEnv: NodeJS.ProcessEnv = {
           ...(spawnOptions.env ?? {}),
           ELECTRON_RUN_AS_NODE: '1',
         };
         if (useElectronShim) {
-          spawnEnv.LOBSTERAI_ELECTRON_PATH = spawnOptions.env?.LOBSTERAI_ELECTRON_PATH || electronNodeRuntimePath;
+          spawnEnv.LUMIAI_ELECTRON_PATH = spawnOptions.env?.LUMIAI_ELECTRON_PATH || electronNodeRuntimePath;
         } else {
-          delete spawnEnv.LOBSTERAI_ELECTRON_PATH;
+          delete spawnEnv.LUMIAI_ELECTRON_PATH;
         }
 
         let command = spawnOptions.command || 'node';
@@ -3040,11 +3040,11 @@ export class CoworkRunner extends EventEmitter {
           || normalizedCommand.endsWith('/node.cmd');
         if (process.platform === 'win32' && isNodeLikeCommand) {
           command = electronNodeRuntimePath;
-          spawnEnv.LOBSTERAI_ELECTRON_PATH = electronNodeRuntimePath;
+          spawnEnv.LUMIAI_ELECTRON_PATH = electronNodeRuntimePath;
           coworkLog('INFO', 'runClaudeCodeLocal', `Rewrote Windows SDK command "${spawnOptions.command || 'node'}" to Electron runtime: ${electronNodeRuntimePath}`);
         } else if (isPackagedDarwin && isNodeLikeCommand) {
           command = electronNodeRuntimePath;
-          spawnEnv.LOBSTERAI_ELECTRON_PATH = electronNodeRuntimePath;
+          spawnEnv.LUMIAI_ELECTRON_PATH = electronNodeRuntimePath;
           coworkLog('INFO', 'runClaudeCodeLocal', `Rewrote packaged macOS SDK command "${spawnOptions.command || 'node'}" to Electron helper runtime: ${electronNodeRuntimePath}`);
         }
 
@@ -3064,7 +3064,7 @@ export class CoworkRunner extends EventEmitter {
           const pointsToAppExecutable = Array.from(commandCandidates).some((candidate) => appExecCandidates.has(candidate));
           if (pointsToAppExecutable) {
             command = electronNodeRuntimePath;
-            spawnEnv.LOBSTERAI_ELECTRON_PATH = electronNodeRuntimePath;
+            spawnEnv.LUMIAI_ELECTRON_PATH = electronNodeRuntimePath;
             coworkLog('WARN', 'runClaudeCodeLocal', 'SDK spawner command points to app executable; rewriting to Electron helper runtime');
           }
         }
@@ -3273,14 +3273,14 @@ export class CoworkRunner extends EventEmitter {
 
                   if (process.platform === 'win32' && app.isPackaged && effectiveStdioCommand) {
                     const normalizedCommand = effectiveStdioCommand.trim().toLowerCase();
-                    const npmBinDir = envVars.LOBSTERAI_NPM_BIN_DIR;
+                    const npmBinDir = envVars.LUMIAI_NPM_BIN_DIR;
                     const npxCliJs = npmBinDir ? path.join(npmBinDir, 'npx-cli.js') : '';
                     const npmCliJs = npmBinDir ? path.join(npmBinDir, 'npm-cli.js') : '';
 
                     const withElectronNodeEnv = (base: Record<string, string> | undefined): Record<string, string> => ({
                       ...(base || {}),
                       ELECTRON_RUN_AS_NODE: '1',
-                      LOBSTERAI_ELECTRON_PATH: electronNodeRuntimePath,
+                      LUMIAI_ELECTRON_PATH: electronNodeRuntimePath,
                     });
 
                     if (
@@ -3353,7 +3353,7 @@ export class CoworkRunner extends EventEmitter {
                       stdioEnv = {
                         ...(stdioEnv || {}),
                         ELECTRON_RUN_AS_NODE: '1',
-                        LOBSTERAI_ELECTRON_PATH: electronNodeRuntimePath,
+                        LUMIAI_ELECTRON_PATH: electronNodeRuntimePath,
                       };
                       coworkLog('WARN', 'runClaudeCodeLocal', `MCP "${serverKey}": command points to app executable; rewriting command to Electron helper runtime`);
                     }

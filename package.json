@@ -1,9 +1,9 @@
 {
-  "name": "lobsterai",
+  "name": "lumiai",
   "private": true,
   "author": {
-    "name": "LobsterAI",
-    "email": "lobsterai.project@rd.netease.com"
+    "name": "LumiAi",
+    "email": "lumiai.project@rd.netease.com"
   },
   "license": "MIT",
   "version": "0.2.4",
