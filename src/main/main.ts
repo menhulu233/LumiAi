@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain, session, nativeTheme, dialog, shell, nativeImage, systemPreferences, Menu } from 'electron';
 import type { WebContents } from 'electron';
 import path from 'path';
+import { broadcastToAllWindows } from './core/broadcaster';
+import { setContainer } from './core/container';
 import fs from 'fs';
 import os from 'os';
 import { SqliteStore } from './sqliteStore';
@@ -409,30 +411,12 @@ const getCoworkRunner = () => {
           imageAttachmentsBase64Lengths: Array.isArray(safeMeta?.imageAttachments) ? safeMeta.imageAttachments.map((a: any) => a?.base64Data?.length ?? 0) : [],
         });
       }
-      const windows = BrowserWindow.getAllWindows();
-      windows.forEach(win => {
-        if (!win.isDestroyed()) {
-          try {
-            win.webContents.send('cowork:stream:message', { sessionId, message: safeMessage });
-          } catch (error) {
-            console.error('Failed to forward cowork message:', error);
-          }
-        }
-      });
+      broadcastToAllWindows('cowork:stream:message', { sessionId, message: safeMessage });
     });
 
     coworkRunner.on('messageUpdate', (sessionId: string, messageId: string, content: string) => {
       const safeContent = truncateIpcString(content, IPC_UPDATE_CONTENT_MAX_CHARS);
-      const windows = BrowserWindow.getAllWindows();
-      windows.forEach(win => {
-        if (!win.isDestroyed()) {
-          try {
-            win.webContents.send('cowork:stream:messageUpdate', { sessionId, messageId, content: safeContent });
-          } catch (error) {
-            console.error('Failed to forward cowork message update:', error);
-          }
-        }
-      });
+      broadcastToAllWindows('cowork:stream:messageUpdate', { sessionId, messageId, content: safeContent });
     });
 
     coworkRunner.on('permissionRequest', (sessionId: string, request: any) => {
@@ -440,34 +424,15 @@ const getCoworkRunner = () => {
         return;
       }
       const safeRequest = sanitizePermissionRequestForIpc(request);
-      const windows = BrowserWindow.getAllWindows();
-      windows.forEach(win => {
-        if (!win.isDestroyed()) {
-          try {
-            win.webContents.send('cowork:stream:permission', { sessionId, request: safeRequest });
-          } catch (error) {
-            console.error('Failed to forward cowork permission request:', error);
-          }
-        }
-      });
+      broadcastToAllWindows('cowork:stream:permission', { sessionId, request: safeRequest });
     });
 
     coworkRunner.on('complete', (sessionId: string, claudeSessionId: string | null) => {
-      const windows = BrowserWindow.getAllWindows();
-      windows.forEach(win => {
-        if (!win.isDestroyed()) {
-          win.webContents.send('cowork:stream:complete', { sessionId, claudeSessionId });
-        }
-      });
+      broadcastToAllWindows('cowork:stream:complete', { sessionId, claudeSessionId });
     });
 
     coworkRunner.on('error', (sessionId: string, error: string) => {
-      const windows = BrowserWindow.getAllWindows();
-      windows.forEach(win => {
-        if (!win.isDestroyed()) {
-          win.webContents.send('cowork:stream:error', { sessionId, error });
-        }
-      });
+      broadcastToAllWindows('cowork:stream:error', { sessionId, error });
     });
   }
   return coworkRunner;
@@ -543,21 +508,11 @@ const getIMGatewayManager = () => {
 
     // Forward IM events to renderer
     imGatewayManager.on('statusChange', (status) => {
-      const windows = BrowserWindow.getAllWindows();
-      windows.forEach(win => {
-        if (!win.isDestroyed()) {
-          win.webContents.send('im:status:change', status);
-        }
-      });
+      broadcastToAllWindows('im:status:change', status);
     });
 
     imGatewayManager.on('message', (message) => {
-      const windows = BrowserWindow.getAllWindows();
-      windows.forEach(win => {
-        if (!win.isDestroyed()) {
-          win.webContents.send('im:message:received', message);
-        }
-      });
+      broadcastToAllWindows('im:message:received', message);
     });
 
     imGatewayManager.on('error', ({ platform, error }) => {
@@ -612,10 +567,7 @@ const getAppIconPath = (): string | undefined => {
 let mainWindow: BrowserWindow | null = null;
 
 onSandboxProgress((progress) => {
-  const windows = BrowserWindow.getAllWindows();
-  windows.forEach((win) => {
-    win.webContents.send('cowork:sandbox:downloadProgress', progress);
-  });
+  broadcastToAllWindows('cowork:sandbox:downloadProgress', progress);
 });
 let isQuitting = false;
 
@@ -2525,6 +2477,18 @@ if (!gotTheLock) {
 
     // Inject scheduled task dependencies into the proxy server
     setScheduledTaskDeps({ getScheduledTaskStore, getScheduler });
+
+    // Wire up DI container (transitional — will be fully populated in later tasks)
+    setContainer({
+      store: getStore(),
+      coworkStore: getCoworkStore(),
+      coworkRunner: getCoworkRunner(),
+      skillManager: getSkillManager(),
+      mcpStore: getMcpStore(),
+      imGatewayManager: getIMGatewayManager(),
+      scheduledTaskStore: getScheduledTaskStore(),
+      scheduler: getScheduler(),
+    });
 
     // 设置安全策略
     setContentSecurityPolicy();
