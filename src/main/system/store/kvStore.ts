@@ -92,6 +92,14 @@ export class KvStore {
       this.db.run(migration.sql);
       this.db.run('INSERT INTO _migrations (name, applied_at) VALUES (?, ?)', [migration.name, Date.now()]);
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // Gracefully handle "duplicate column name" errors from ALTER TABLE migrations
+      // on databases that already have the column (e.g. from before the migration framework).
+      if (message.includes('duplicate column name')) {
+        console.warn(`[KvStore] Migration ${migration.name}: column already exists, skipping. (${message})`);
+        this.db.run('INSERT INTO _migrations (name, applied_at) VALUES (?, ?)', [migration.name, Date.now()]);
+        return;
+      }
       console.error(`[KvStore] Migration failed: ${migration.name}`, error);
       throw error;
     }
