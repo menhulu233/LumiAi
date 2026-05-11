@@ -7,7 +7,7 @@ import type { Readable } from 'stream';
 import { StringDecoder } from 'string_decoder';
 import { v4 as uuidv4 } from 'uuid';
 import type { PermissionResult } from '@anthropic-ai/claude-agent-sdk';
-import type { CoworkStore, CoworkMessage, CoworkExecutionMode } from '../coworkStore';
+import type { CoworkStore, CoworkMessage, CoworkExecutionMode } from '../domains/cowork/store';
 import { getClaudeCodePath, getCurrentApiConfig } from './claudeSettings';
 import { loadClaudeSdk } from './claudeSdk';
 import { getElectronNodeRuntimePath, getEnhancedEnv, getEnhancedEnvWithTmpdir, getSkillsRoot } from './coworkUtil';

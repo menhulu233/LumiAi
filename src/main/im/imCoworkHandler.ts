@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import type { PermissionResult } from '@anthropic-ai/claude-agent-sdk';
 import type { CoworkRunner, PermissionRequest } from '../libs/coworkRunner';
-import type { CoworkStore, CoworkMessage } from '../coworkStore';
+import type { CoworkStore, CoworkMessage } from '../domains/cowork/store';
 import type { IMStore } from './imStore';
 import type { IMMessage, IMPlatform, IMMediaAttachment } from './types';
 import { buildIMMediaInstruction } from './imMediaInstruction';

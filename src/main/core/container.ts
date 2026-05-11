@@ -1,5 +1,5 @@
 import type { KvStore } from '../system/store/kvStore';
-import type { CoworkStore } from '../coworkStore';
+import type { CoworkStore } from '../domains/cowork/store';
 import type { CoworkRunner } from '../libs/coworkRunner';
 import type { SkillManager } from '../skillManager';
 import type { McpStore } from '../mcpStore';

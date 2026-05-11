@@ -29,7 +29,7 @@ import {
 } from './types';
 import type { Database } from 'sql.js';
 import type { CoworkRunner } from '../libs/coworkRunner';
-import type { CoworkStore } from '../coworkStore';
+import type { CoworkStore } from '../domains/cowork/store';
 const CONNECTIVITY_TIMEOUT_MS = 10_000;
 const INBOUND_ACTIVITY_WARN_AFTER_MS = 2 * 60 * 1000;
 

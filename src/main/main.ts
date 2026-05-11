@@ -6,7 +6,7 @@ import { setContainer } from './core/container';
 import fs from 'fs';
 import os from 'os';
 import { KvStore } from './system/store/kvStore';
-import { CoworkStore } from './coworkStore';
+import { CoworkStore } from './domains/cowork/store';
 import { CoworkRunner } from './libs/coworkRunner';
 import { SkillManager } from './skillManager';
 import type { PermissionResult } from '@anthropic-ai/claude-agent-sdk';
