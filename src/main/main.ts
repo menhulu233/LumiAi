@@ -32,20 +32,14 @@ import {
   restoreOriginalProxyEnv,
   setSystemProxyEnabled,
 } from './libs/systemProxy';
+import { sanitizeCoworkMessageForIpc, sanitizePermissionRequestForIpc, truncateIpcString, IPC_UPDATE_CONTENT_MAX_CHARS } from './utils/sanitize';
+import { configureUserDataPath, sanitizeExportFileName, sanitizeAttachmentFileName, ensurePngFileName, ensureZipFileName, normalizeWindowsShellPath } from './utils/paths';
+import { clampMemoryUserMemoriesMaxItems } from './utils/validators';
 
 // 设置应用程序名称
 app.name = APP_NAME;
 app.setName(APP_NAME);
 
-const INVALID_FILE_NAME_PATTERN = /[<>:"/\\|?*\u0000-\u001F]/g;
-const MIN_MEMORY_USER_MEMORIES_MAX_ITEMS = 1;
-const MAX_MEMORY_USER_MEMORIES_MAX_ITEMS = 60;
-const IPC_MESSAGE_CONTENT_MAX_CHARS = 120_000;
-const IPC_UPDATE_CONTENT_MAX_CHARS = 120_000;
-const IPC_STRING_MAX_CHARS = 4_000;
-const IPC_MAX_DEPTH = 5;
-const IPC_MAX_KEYS = 80;
-const IPC_MAX_ITEMS = 40;
 const MAX_INLINE_ATTACHMENT_BYTES = 25 * 1024 * 1024;
 const MIME_EXTENSION_MAP: Record<string, string> = {
   'image/png': '.png',
@@ -59,19 +53,6 @@ const MIME_EXTENSION_MAP: Record<string, string> = {
   'text/markdown': '.md',
   'application/json': '.json',
   'text/csv': '.csv',
-};
-
-const sanitizeExportFileName = (value: string): string => {
-  const sanitized = value.replace(INVALID_FILE_NAME_PATTERN, ' ').replace(/\s+/g, ' ').trim();
-  return sanitized || 'cowork-session';
-};
-
-const sanitizeAttachmentFileName = (value?: string): string => {
-  const raw = typeof value === 'string' ? value.trim() : '';
-  if (!raw) return 'attachment';
-  const fileName = path.basename(raw);
-  const sanitized = fileName.replace(INVALID_FILE_NAME_PATTERN, ' ').replace(/\s+/g, ' ').trim();
-  return sanitized || 'attachment';
 };
 
 const inferAttachmentExtension = (fileName: string, mimeType?: string): string => {
@@ -97,14 +78,6 @@ const resolveInlineAttachmentDir = (cwd?: string): string => {
   return path.join(app.getPath('temp'), 'lumiai', 'attachments');
 };
 
-const ensurePngFileName = (value: string): string => {
-  return value.toLowerCase().endsWith('.png') ? value : `${value}.png`;
-};
-
-const ensureZipFileName = (value: string): string => {
-  return value.toLowerCase().endsWith('.zip') ? value : `${value}.zip`;
-};
-
 const padTwoDigits = (value: number): string => value.toString().padStart(2, '0');
 
 const buildLogExportFileName = (): string => {
@@ -112,98 +85,6 @@ const buildLogExportFileName = (): string => {
   const datePart = `${now.getFullYear()}${padTwoDigits(now.getMonth() + 1)}${padTwoDigits(now.getDate())}`;
   const timePart = `${padTwoDigits(now.getHours())}${padTwoDigits(now.getMinutes())}${padTwoDigits(now.getSeconds())}`;
   return `lumiai-logs-${datePart}-${timePart}.zip`;
-};
-
-const truncateIpcString = (value: string, maxChars: number): string => {
-  if (value.length <= maxChars) return value;
-  return `${value.slice(0, maxChars)}\n...[truncated in main IPC forwarding]`;
-};
-
-const sanitizeIpcPayload = (value: unknown, depth = 0, seen?: WeakSet<object>): unknown => {
-  const localSeen = seen ?? new WeakSet<object>();
-  if (
-    value === null
-    || typeof value === 'number'
-    || typeof value === 'boolean'
-    || typeof value === 'undefined'
-  ) {
-    return value;
-  }
-  if (typeof value === 'string') {
-    return truncateIpcString(value, IPC_STRING_MAX_CHARS);
-  }
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  if (typeof value === 'function') {
-    return '[function]';
-  }
-  if (depth >= IPC_MAX_DEPTH) {
-    return '[truncated-depth]';
-  }
-  if (Array.isArray(value)) {
-    const result = value.slice(0, IPC_MAX_ITEMS).map((entry) => sanitizeIpcPayload(entry, depth + 1, localSeen));
-    if (value.length > IPC_MAX_ITEMS) {
-      result.push(`[truncated-items:${value.length - IPC_MAX_ITEMS}]`);
-    }
-    return result;
-  }
-  if (typeof value === 'object') {
-    if (localSeen.has(value as object)) {
-      return '[circular]';
-    }
-    localSeen.add(value as object);
-    const entries = Object.entries(value as Record<string, unknown>);
-    const result: Record<string, unknown> = {};
-    for (const [key, entry] of entries.slice(0, IPC_MAX_KEYS)) {
-      result[key] = sanitizeIpcPayload(entry, depth + 1, localSeen);
-    }
-    if (entries.length > IPC_MAX_KEYS) {
-      result.__truncated_keys__ = entries.length - IPC_MAX_KEYS;
-    }
-    return result;
-  }
-  return String(value);
-};
-
-const sanitizeCoworkMessageForIpc = (message: any): any => {
-  if (!message || typeof message !== 'object') {
-    return message;
-  }
-
-  // Preserve imageAttachments in metadata as-is (base64 data can be very large
-  // and must not be truncated by the generic sanitizer).
-  let sanitizedMetadata: unknown;
-  if (message.metadata && typeof message.metadata === 'object') {
-    const { imageAttachments, ...rest } = message.metadata as Record<string, unknown>;
-    const sanitizedRest = sanitizeIpcPayload(rest) as Record<string, unknown> | undefined;
-    sanitizedMetadata = {
-      ...(sanitizedRest && typeof sanitizedRest === 'object' ? sanitizedRest : {}),
-      ...(Array.isArray(imageAttachments) && imageAttachments.length > 0
-        ? { imageAttachments }
-        : {}),
-    };
-  } else {
-    sanitizedMetadata = undefined;
-  }
-
-  return {
-    ...message,
-    content: typeof message.content === 'string'
-      ? truncateIpcString(message.content, IPC_MESSAGE_CONTENT_MAX_CHARS)
-      : '',
-    metadata: sanitizedMetadata,
-  };
-};
-
-const sanitizePermissionRequestForIpc = (request: any): any => {
-  if (!request || typeof request !== 'object') {
-    return request;
-  }
-  return {
-    ...request,
-    toolInput: sanitizeIpcPayload(request.toolInput ?? {}),
-  };
 };
 
 type CaptureRect = { x: number; y: number; width: number; height: number };
@@ -272,17 +153,6 @@ const savePngWithDialog = async (
   return { success: true, canceled: false, path: outputPath };
 };
 
-const configureUserDataPath = (): void => {
-  const appDataPath = app.getPath('appData');
-  const preferredUserDataPath = path.join(appDataPath, APP_NAME);
-  const currentUserDataPath = app.getPath('userData');
-
-  if (currentUserDataPath !== preferredUserDataPath) {
-    app.setPath('userData', preferredUserDataPath);
-    console.log(`[Main] userData path updated: ${currentUserDataPath} -> ${preferredUserDataPath}`);
-  }
-};
-
 configureUserDataPath();
 initLogger();
 
@@ -308,45 +178,6 @@ const TITLEBAR_COLORS = {
   // Align light title bar with app light surface-muted tone to reduce visual contrast.
   light: { color: '#F3F4F6', symbolColor: '#1A1D23' },
 } as const;
-
-const safeDecodeURIComponent = (value: string): string => {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-};
-
-const normalizeWindowsShellPath = (inputPath: string): string => {
-  if (!isWindows) return inputPath;
-
-  const trimmed = inputPath.trim();
-  if (!trimmed) return inputPath;
-
-  let normalized = trimmed;
-  if (/^file:\/\//i.test(normalized)) {
-    normalized = safeDecodeURIComponent(normalized.replace(/^file:\/\//i, ''));
-  }
-
-  if (/^\/[A-Za-z]:/.test(normalized)) {
-    normalized = normalized.slice(1);
-  }
-
-  const unixDriveMatch = normalized.match(/^[/\\]([A-Za-z])[/\\](.+)$/);
-  if (unixDriveMatch) {
-    const drive = unixDriveMatch[1].toUpperCase();
-    const rest = unixDriveMatch[2].replace(/[/\\]+/g, '\\');
-    return `${drive}:\\${rest}`;
-  }
-
-  if (/^[A-Za-z]:[/\\]/.test(normalized)) {
-    const drive = normalized[0].toUpperCase();
-    const rest = normalized.slice(1).replace(/\//g, '\\');
-    return `${drive}${rest}`;
-  }
-
-  return normalized;
-};
 
 // ==================== macOS Permissions ====================
 
@@ -1687,11 +1518,8 @@ if (!gotTheLock) {
         : undefined;
       const normalizedMemoryUserMemoriesMaxItems =
         typeof config.memoryUserMemoriesMaxItems === 'number' && Number.isFinite(config.memoryUserMemoriesMaxItems)
-          ? Math.max(
-            MIN_MEMORY_USER_MEMORIES_MAX_ITEMS,
-            Math.min(MAX_MEMORY_USER_MEMORIES_MAX_ITEMS, Math.floor(config.memoryUserMemoriesMaxItems))
-          )
-        : undefined;
+          ? clampMemoryUserMemoriesMaxItems(config.memoryUserMemoriesMaxItems)
+          : undefined;
       const normalizedConfig = {
         ...config,
         executionMode: normalizedExecutionMode,
