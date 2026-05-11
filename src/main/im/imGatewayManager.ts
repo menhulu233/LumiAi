@@ -772,13 +772,6 @@ export class IMGatewayManager extends EventEmitter {
         message: 'QQ 频道中需要 @机器人 才能触发消息响应，也支持私信对话。',
         suggestion: '请在频道中使用 @机器人 + 内容触发对话，或通过私信直接发送消息。',
       });
-    } else if (platform === 'wecom') {
-      addCheck({
-        code: 'wecom_hint',
-        level: 'info',
-        message: '企业微信机器人通过 WebSocket 长连接接收消息。',
-        suggestion: '请在企业微信中向机器人发送消息触发对话。群聊中需 @机器人。',
-      });
     }
 
     return {
@@ -912,6 +905,12 @@ export class IMGatewayManager extends EventEmitter {
    * Check if any gateway is connected
    */
   isAnyConnected(): boolean {
+    return this.dingtalkGateway.isConnected() ||
+      this.feishuGateway.isConnected() ||
+      this.telegramGateway.isConnected() ||
+      this.discordGateway.isConnected() ||
+      this.qqGateway.isConnected() ||
+      this.wecomGateway.isConnected();
   }
 
   /**
