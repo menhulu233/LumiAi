@@ -3,12 +3,12 @@
 Use the wrapper script unless the CLI is already installed globally:
 
 ```bash
-export SKILLS_ROOT="${LUMIAI_SKILLS_ROOT:-${SKILLS_ROOT:-$HOME/Library/Application Support/LumiAi/SKILLs}}"
+export SKILLS_ROOT="${LUMIAI_SKILLS_ROOT:-${SKILLS_ROOT:-$HOME/Library/Application Support/LumiAi/skills}}"
 export PWCLI="$SKILLS_ROOT/playwright/scripts/playwright_cli.sh"
 "$PWCLI" --help
 ```
 
-Installed skills resolve from `$LUMIAI_SKILLS_ROOT` / `$SKILLS_ROOT` (production default: app `userData/SKILLs`, macOS usually `~/Library/Application Support/LumiAi/SKILLs`).
+Installed skills resolve from `$LUMIAI_SKILLS_ROOT` / `$SKILLS_ROOT` (production default: app `userData/skills`, macOS usually `~/Library/Application Support/LumiAi/skills`).
 
 Optional convenience alias:
 

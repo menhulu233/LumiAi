@@ -15,7 +15,7 @@ Replace all branding references from "LumiAi" to "LumiAi" across the entire code
 | documentation | README.md, README_zh.md | All brand references |
 | source code | src/main/, src/renderer/ | String literals |
 | system prompts | sandbox/agent-runner/AGENT_SYSTEM_PROMPT.md | Brand references |
-| skills | SKILLs/ | Skill documentation |
+| skills | skills/ | Skill documentation |
 | URLs | GitHub links | netease-youdao/LumiAi → netease-youdao/LumiAi |
 
 ## Naming Convention

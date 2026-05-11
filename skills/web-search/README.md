@@ -37,7 +37,7 @@ Claude → Bash Tool → CLI Scripts → Bridge Server (localhost:8923) → Play
 ### 1. Install Dependencies
 
 ```bash
-cd SKILLs/web-search
+cd skills/web-search
 npm install
 ```
 
@@ -70,7 +70,7 @@ bash scripts/stop-server.sh
 ### Simple Search
 
 ```bash
-bash SKILLs/web-search/scripts/search.sh "search query" [max_results]
+bash skills/web-search/scripts/search.sh "search query" [max_results]
 ```
 
 **Examples:**
@@ -142,7 +142,7 @@ When Claude needs real-time information, it will:
 ```
 User: What are the new features in Next.js 14?
 
-Claude: [Calls: bash SKILLs/web-search/scripts/search.sh "Next.js 14 features" 5]
+Claude: [Calls: bash skills/web-search/scripts/search.sh "Next.js 14 features" 5]
 
         Based on the latest search results, Next.js 14 introduces:
         1. Turbopack - 5000x faster than Webpack
@@ -176,7 +176,7 @@ Claude: [Calls: bash SKILLs/web-search/scripts/search.sh "Next.js 14 features" 5
 ## Project Structure
 
 ```
-SKILLs/web-search/
+skills/web-search/
 ├── README.md                    # This file
 ├── SKILL.md                     # Skill documentation (for Claude)
 ├── LICENSE.txt                  # MIT License

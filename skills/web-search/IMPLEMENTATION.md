@@ -72,7 +72,7 @@ Claude → Bash Tool → CLI Scripts → Bridge Server (localhost:8923) → Play
 ## 📁 Project Structure
 
 ```
-SKILLs/web-search/
+skills/web-search/
 ├── README.md                    # Main documentation (400+ lines)
 ├── SKILL.md                     # Claude guidance (600+ lines)
 ├── TEST.md                      # E2E test guide (300+ lines)
@@ -166,7 +166,7 @@ Total: ~3500 lines of code + ~2000 lines of documentation
 ### Simple Search (Recommended for Claude)
 
 ```bash
-bash SKILLs/web-search/scripts/search.sh "TypeScript tutorial" 5
+bash skills/web-search/scripts/search.sh "TypeScript tutorial" 5
 ```
 
 Output:
@@ -203,7 +203,7 @@ curl -X POST http://127.0.0.1:8923/api/search \
 User: What are the new features in React 19?
 
 Claude: [Automatically detects need for real-time info]
-        [Executes: bash SKILLs/web-search/scripts/search.sh "React 19 new features" 5]
+        [Executes: bash skills/web-search/scripts/search.sh "React 19 new features" 5]
         [Parses results, synthesizes information]
 
         Based on the latest search results, React 19 introduces:
@@ -274,8 +274,8 @@ Claude: [Automatically detects need for real-time info]
 - Graceful shutdown on app quit
 
 ### With Skills System
-- `SKILLs/skills.config.json` - Skill registration
-- `SKILLs/web-search/SKILL.md` - Skill metadata
+- `skills/skills.config.json` - Skill registration
+- `skills/web-search/SKILL.md` - Skill metadata
 - Order: 15 (between docx and xlsx)
 
 ### With Cowork
@@ -312,8 +312,8 @@ Claude: [Automatically detects need for real-time info]
 
 ```bash
 # Server won't start
-cat SKILLs/web-search/.server.log
-npm run build --prefix SKILLs/web-search
+cat skills/web-search/.server.log
+npm run build --prefix skills/web-search
 
 # Chrome not found
 # Install from https://www.google.com/chrome/
@@ -323,12 +323,12 @@ lsof -i :8923
 kill -9 <PID>
 
 # Stale connection
-rm SKILLs/web-search/.connection
+rm skills/web-search/.connection
 
 # Full reset
-bash SKILLs/web-search/scripts/stop-server.sh
-rm SKILLs/web-search/{.connection,.server.pid,.server.log}
-bash SKILLs/web-search/scripts/start-server.sh
+bash skills/web-search/scripts/stop-server.sh
+rm skills/web-search/{.connection,.server.pid,.server.log}
+bash skills/web-search/scripts/start-server.sh
 ```
 
 ## 📝 Commit Message
@@ -365,10 +365,10 @@ Integration:
 - Cross-platform support (macOS/Linux/Windows)
 
 Files:
-- SKILLs/web-search/ (3500+ lines)
+- skills/web-search/ (3500+ lines)
 - electron/skillServices.ts (200+ lines)
 - Updated electron/main.ts
-- Updated SKILLs/skills.config.json
+- Updated skills/skills.config.json
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
@@ -386,7 +386,7 @@ Built with:
 For issues or questions:
 1. Check TEST.md for troubleshooting
 2. Review .server.log for errors
-3. Run basic tests: `node SKILLs/web-search/scripts/test-basic.js`
+3. Run basic tests: `node skills/web-search/scripts/test-basic.js`
 4. Verify Chrome installation
 5. Check internet connection
 

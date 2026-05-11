@@ -22,8 +22,8 @@
   ],
   "extraResources": [
     {
-      "from": "SKILLs",
-      "to": "SKILLs",
+      "from": "skills",
+      "to": "skills",
       "filter": [
         "**/*",
         "!**/.env",

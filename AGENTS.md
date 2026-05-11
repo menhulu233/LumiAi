@@ -84,7 +84,7 @@ src/renderer/
 │   │   └── CoworkPermissionModal.tsx # Tool permission UI
 │   └── artifacts/       # Artifact renderers
 
-SKILLs/                  # Custom skill definitions for cowork sessions
+skills/                  # Custom skill definitions for cowork sessions
 ├── skills.config.json   # Skill enable/order configuration
 ├── docx/                # Word document generation skill
 ├── xlsx/                # Excel skill
@@ -132,7 +132,7 @@ The Cowork feature provides AI-assisted coding sessions:
 - **Theme system**: Class-based Tailwind dark mode, applies `dark` class to `<html>` element
 - **i18n**: Simple key-value translation in `services/i18n.ts`, supports Chinese (default) and English. Language auto-detected from system locale on first run.
 - **Path alias**: `@` maps to `src/renderer/` in Vite config for imports.
-- **Skills**: Custom skill definitions in `SKILLs/` directory, configured via `skills.config.json`
+- **Skills**: Custom skill definitions in `skills/` directory, configured via `skills.config.json`
 
 ### Artifacts System
 

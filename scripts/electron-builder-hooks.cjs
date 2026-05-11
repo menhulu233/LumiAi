@@ -136,7 +136,7 @@ function hasCommand(command) {
 }
 
 /**
- * Install dependencies for all skills in the SKILLs directory.
+ * Install dependencies for all skills in the skills directory.
  * This ensures bundled skills include node_modules for users without npm.
  */
 function installSkillDependencies() {
@@ -147,9 +147,9 @@ function installSkillDependencies() {
     return;
   }
 
-  const skillsDir = path.join(__dirname, '..', 'SKILLs');
+  const skillsDir = path.join(__dirname, '..', 'skills');
   if (!existsSync(skillsDir)) {
-    console.log('[electron-builder-hooks] SKILLs directory not found, skipping skill dependency installation');
+    console.log('[electron-builder-hooks] skills directory not found, skipping skill dependency installation');
     return;
   }
 

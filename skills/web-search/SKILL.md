@@ -204,7 +204,7 @@ Parse the Markdown output to extract key information for the user. Don't just du
 
 ```bash
 # User asks about latest framework features
-bash SKILLs/web-search/scripts/search.sh "Next.js 15 documentation" 5
+bash skills/web-search/scripts/search.sh "Next.js 15 documentation" 5
 
 # Parse results, find official docs, summarize features
 ```
@@ -213,7 +213,7 @@ bash SKILLs/web-search/scripts/search.sh "Next.js 15 documentation" 5
 
 ```bash
 # User reports an error
-bash SKILLs/web-search/scripts/search.sh "TypeError: Cannot read property of undefined React" 5
+bash skills/web-search/scripts/search.sh "TypeError: Cannot read property of undefined React" 5
 
 # Find Stack Overflow answers and GitHub issues, provide solution
 ```
@@ -222,7 +222,7 @@ bash SKILLs/web-search/scripts/search.sh "TypeError: Cannot read property of und
 
 ```bash
 # User asks about recent news
-bash SKILLs/web-search/scripts/search.sh "AI developments January 2026" 10
+bash skills/web-search/scripts/search.sh "AI developments January 2026" 10
 
 # Summarize key news items from results
 ```
@@ -231,7 +231,7 @@ bash SKILLs/web-search/scripts/search.sh "AI developments January 2026" 10
 
 ```bash
 # User wants to compare technologies
-bash SKILLs/web-search/scripts/search.sh "Vue 3 vs React 18 performance 2026" 5
+bash skills/web-search/scripts/search.sh "Vue 3 vs React 18 performance 2026" 5
 
 # Synthesize comparison from multiple sources
 ```
@@ -240,7 +240,7 @@ bash SKILLs/web-search/scripts/search.sh "Vue 3 vs React 18 performance 2026" 5
 
 ```bash
 # User needs specific API documentation
-bash SKILLs/web-search/scripts/search.sh "Playwright page.evaluate examples" 5
+bash skills/web-search/scripts/search.sh "Playwright page.evaluate examples" 5
 
 # Extract code examples and usage patterns
 ```
@@ -253,8 +253,8 @@ bash SKILLs/web-search/scripts/search.sh "Playwright page.evaluate examples" 5
 
 **Solution:**
 - The server should auto-start with Electron
-- If manual start needed: `bash SKILLs/web-search/scripts/start-server.sh`
-- Check logs: `cat SKILLs/web-search/.server.log`
+- If manual start needed: `bash skills/web-search/scripts/start-server.sh`
+- Check logs: `cat skills/web-search/.server.log`
 
 ### Browser Launch Failed
 
@@ -274,13 +274,13 @@ bash SKILLs/web-search/scripts/search.sh "Playwright page.evaluate examples" 5
 **Solution:**
 ```bash
 # Stop server
-bash SKILLs/web-search/scripts/stop-server.sh
+bash skills/web-search/scripts/stop-server.sh
 
 # Clear cache
-rm SKILLs/web-search/.connection
+rm skills/web-search/.connection
 
 # Restart
-bash SKILLs/web-search/scripts/start-server.sh
+bash skills/web-search/scripts/start-server.sh
 ```
 
 ### No Search Results
@@ -400,10 +400,10 @@ The search output is Markdown. Extract:
 curl http://127.0.0.1:8923/api/health
 
 # 2. Check server logs
-cat SKILLs/web-search/.server.log | tail -50
+cat skills/web-search/.server.log | tail -50
 
 # 3. Test basic search
-bash SKILLs/web-search/scripts/search.sh "test" 1
+bash skills/web-search/scripts/search.sh "test" 1
 
 # 4. Check Chrome installation
 which google-chrome || which chromium || which chromium-browser
@@ -424,7 +424,7 @@ which google-chrome || which chromium || which chromium-browser
 If all else fails, full reset:
 
 ```bash
-cd SKILLs/web-search
+cd skills/web-search
 
 # Stop server
 bash scripts/stop-server.sh
@@ -535,15 +535,15 @@ bash "$SKILLS_ROOT/web-search/scripts/search.sh" "Vite vs webpack 2026 compariso
 
 ### File Locations
 
-- Server: `SKILLs/web-search/dist/server/index.js`
-- Logs: `SKILLs/web-search/.server.log`
-- PID: `SKILLs/web-search/.server.pid`
-- Connection cache: `SKILLs/web-search/.connection`
+- Server: `skills/web-search/dist/server/index.js`
+- Logs: `skills/web-search/.server.log`
+- PID: `skills/web-search/.server.pid`
+- Connection cache: `skills/web-search/.connection`
 
 ## Additional Resources
 
-- **Full documentation:** `SKILLs/web-search/README.md`
-- **Usage examples:** `SKILLs/web-search/examples/basic-search.md`
+- **Full documentation:** `skills/web-search/README.md`
+- **Usage examples:** `skills/web-search/examples/basic-search.md`
 - **API reference:** See README.md for complete API documentation
 - **Troubleshooting:** See examples/basic-search.md
 
@@ -551,7 +551,7 @@ bash "$SKILLS_ROOT/web-search/scripts/search.sh" "Vite vs webpack 2026 compariso
 
 For issues:
 1. Check `.server.log` for errors
-2. Run basic test: `node SKILLs/web-search/scripts/test-basic.js`
+2. Run basic test: `node skills/web-search/scripts/test-basic.js`
 3. Verify Chrome installation
 4. Check internet connection
 5. Review troubleshooting section above

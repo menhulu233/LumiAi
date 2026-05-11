@@ -62,7 +62,7 @@ Use the local-tools skill when you need to:
 
 **IMPORTANT: How to Locate the Script**
 
-When you read this SKILL.md file using the Read tool, you receive its absolute path (e.g., `/Users/username/.../SKILLs/local-tools/SKILL.md`).
+When you read this SKILL.md file using the Read tool, you receive its absolute path (e.g., `/Users/username/.../skills/local-tools/SKILL.md`).
 
 **To construct the script path:**
 1. Take the directory of this SKILL.md file
@@ -70,10 +70,10 @@ When you read this SKILL.md file using the Read tool, you receive its absolute p
 
 **Example:**
 ```bash
-# If SKILL.md is at: /Users/username/path/to/SKILLs/local-tools/SKILL.md
-# Then the script is: /Users/username/path/to/SKILLs/local-tools/scripts/calendar.sh
+# If SKILL.md is at: /Users/username/path/to/skills/local-tools/SKILL.md
+# Then the script is: /Users/username/path/to/skills/local-tools/scripts/calendar.sh
 
-bash "/Users/username/path/to/SKILLs/local-tools/scripts/calendar.sh" <operation> [options]
+bash "/Users/username/path/to/skills/local-tools/scripts/calendar.sh" <operation> [options]
 ```
 
 In all examples below, `<skill-dir>/scripts/calendar.sh` is a placeholder. Replace it with the actual absolute path.

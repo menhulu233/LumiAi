@@ -25,10 +25,10 @@ resources/MinGit-*.zip
 resources/PortableGit-*.7z.exe
 resources/python-win/
 resources/python-*.zip
-SKILLs/**/.connection
-SKILLs/**/.server.log
-SKILLs/**/.server.pid
-SKILLs/**/.venv/
+skills/**/.connection
+skills/**/.server.log
+skills/**/.server.pid
+skills/**/.venv/
 nul
 .work.env
 .playwright-mcp/

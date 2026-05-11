@@ -47,10 +47,10 @@ const SANDBOX_ALLOWED_ENV_KEYS = [
 
 const SANDBOX_SKILLS_MOUNT_TAG = 'skills';
 // On macOS/Linux, keep sandbox skills outside the project workspace mount to
-// avoid creating SKILLs directories in the user's selected host folder.
+// avoid creating skills directories in the user's selected host folder.
 // On Windows, keep historical path for compatibility with serial-mode flows.
 const SANDBOX_SKILLS_GUEST_PATH = '/workspace/skills';
-const SANDBOX_SKILLS_GUEST_PATH_WINDOWS = '/workspace/project/SKILLs';
+const SANDBOX_SKILLS_GUEST_PATH_WINDOWS = '/workspace/project/skills';
 const SANDBOX_WORKSPACE_GUEST_ROOT = '/workspace/project';
 const SANDBOX_WORKSPACE_LEGACY_ROOT = '/workspace';
 const ATTACHMENT_LINE_RE = /^\s*(?:[-*]\s*)?(输入文件|input\s*file)\s*[:：]\s*(.+?)\s*$/i;
@@ -61,7 +61,7 @@ const LEGACY_SKILLS_ROOT_HINTS = [
   '/mnt/skills',
   '/tmp/workspace/skills',
   '/workspace/skills',
-  '/workspace/SKILLs',
+  '/workspace/skills',
 ];
 const INFERRED_FILE_SEARCH_IGNORE = new Set(['.git', 'node_modules', '.cowork-temp', '.idea', '.vscode']);
 const SANDBOX_HISTORY_MAX_MESSAGES = 18;
@@ -1009,13 +1009,13 @@ export class CoworkRunner extends EventEmitter {
     pushCandidate(getSkillsRoot());
 
     if (app.isPackaged) {
-      pushCandidate(path.join(process.resourcesPath, 'SKILLs'));
       pushCandidate(path.join(process.resourcesPath, 'skills'));
-      pushCandidate(path.join(app.getAppPath(), 'SKILLs'));
+      pushCandidate(path.join(process.resourcesPath, 'skills'));
+      pushCandidate(path.join(app.getAppPath(), 'skills'));
       pushCandidate(path.join(app.getAppPath(), 'skills'));
     }
 
-    pushCandidate(path.join(cwdMapping.hostPath, 'SKILLs'));
+    pushCandidate(path.join(cwdMapping.hostPath, 'skills'));
     pushCandidate(path.join(cwdMapping.hostPath, 'skills'));
 
     return candidates.filter((candidate) => this.isDirectory(candidate));

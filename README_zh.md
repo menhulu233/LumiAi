@@ -165,7 +165,7 @@ src/
 │       ├── im/                     # IM 集成 UI
 │       └── Settings.tsx            # 设置面板
 │
-SKILLs/                              # 技能定义目录
+skills/                              # 技能定义目录
 ├── skills.config.json              # 技能启停与排序配置
 ├── web-search/                     # Web 搜索
 ├── docx/                           # Word 文档生成
@@ -206,7 +206,7 @@ Cowork 通过 IPC 事件实现实时双向通信：
 
 ## 技能系统
 
-LumiAi 内置 16 种技能，覆盖办公、创作、自动化等多种场景，通过 `SKILLs/skills.config.json` 配置启停和排序：
+LumiAi 内置 16 种技能，覆盖办公、创作、自动化等多种场景，通过 `skills/skills.config.json` 配置启停和排序：
 
 | 技能 | 功能 | 典型场景 |
 |------|------|---------|

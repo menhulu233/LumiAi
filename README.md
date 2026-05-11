@@ -165,7 +165,7 @@ src/
 │       ├── im/                     # IM integration UI
 │       └── Settings.tsx            # Settings panel
 │
-SKILLs/                              # Skill definitions
+skills/                              # Skill definitions
 ├── skills.config.json              # Skill enable/disable and ordering
 ├── web-search/                     # Web search
 ├── docx/                           # Word document generation
@@ -205,7 +205,7 @@ All tool invocations involving file system access, terminal commands, or network
 
 ## Skills System
 
-LumiAi ships with 16 built-in skills covering productivity, creative, and automation scenarios, configured via `SKILLs/skills.config.json`:
+LumiAi ships with 16 built-in skills covering productivity, creative, and automation scenarios, configured via `skills/skills.config.json`:
 
 | Skill | Function | Typical Use Case |
 |-------|----------|-----------------|

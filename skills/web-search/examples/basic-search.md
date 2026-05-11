@@ -7,20 +7,20 @@ This document provides practical examples of using the Web Search skill.
 ### 1. Start the Bridge Server
 
 ```bash
-bash SKILLs/web-search/scripts/start-server.sh
+bash skills/web-search/scripts/start-server.sh
 ```
 
 Expected output:
 ```
 ✓ Bridge Server started successfully (PID: 12345)
   Health check: http://127.0.0.1:8923/api/health
-  Logs: SKILLs/web-search/.server.log
+  Logs: skills/web-search/.server.log
 ```
 
 ### 2. Perform a Simple Search
 
 ```bash
-bash SKILLs/web-search/scripts/search.sh "TypeScript tutorial" 5
+bash skills/web-search/scripts/search.sh "TypeScript tutorial" 5
 ```
 
 Expected output:
@@ -44,7 +44,7 @@ Expected output:
 ### 3. Stop the Server
 
 ```bash
-bash SKILLs/web-search/scripts/stop-server.sh
+bash skills/web-search/scripts/stop-server.sh
 ```
 
 ## Common Use Cases
@@ -54,7 +54,7 @@ bash SKILLs/web-search/scripts/stop-server.sh
 **Scenario:** Find the latest React 19 features
 
 ```bash
-bash SKILLs/web-search/scripts/search.sh "React 19 new features" 10
+bash skills/web-search/scripts/search.sh "React 19 new features" 10
 ```
 
 **Use Case:** When you need up-to-date information beyond Claude's knowledge cutoff.
@@ -64,7 +64,7 @@ bash SKILLs/web-search/scripts/search.sh "React 19 new features" 10
 **Scenario:** Search for Next.js App Router documentation
 
 ```bash
-bash SKILLs/web-search/scripts/search.sh "Next.js App Router documentation" 5
+bash skills/web-search/scripts/search.sh "Next.js App Router documentation" 5
 ```
 
 **Use Case:** Find official documentation for specific frameworks or libraries.
@@ -74,7 +74,7 @@ bash SKILLs/web-search/scripts/search.sh "Next.js App Router documentation" 5
 **Scenario:** Find recent AI news
 
 ```bash
-bash SKILLs/web-search/scripts/search.sh "AI news 2026" 10
+bash skills/web-search/scripts/search.sh "AI news 2026" 10
 ```
 
 **Use Case:** Get real-time information about current events.
@@ -84,7 +84,7 @@ bash SKILLs/web-search/scripts/search.sh "AI news 2026" 10
 **Scenario:** Search for error solutions
 
 ```bash
-bash SKILLs/web-search/scripts/search.sh "TypeError: Cannot read property of undefined" 5
+bash skills/web-search/scripts/search.sh "TypeError: Cannot read property of undefined" 5
 ```
 
 **Use Case:** Find solutions to specific error messages.
@@ -94,7 +94,7 @@ bash SKILLs/web-search/scripts/search.sh "TypeError: Cannot read property of und
 **Scenario:** Compare technologies
 
 ```bash
-bash SKILLs/web-search/scripts/search.sh "Vue vs React 2026 comparison" 8
+bash skills/web-search/scripts/search.sh "Vue vs React 2026 comparison" 8
 ```
 
 **Use Case:** Gather information for comparative analysis.
@@ -254,19 +254,19 @@ curl -X POST http://127.0.0.1:8923/api/browser/disconnect \
 
 ```bash
 # 1. Start server
-bash SKILLs/web-search/scripts/start-server.sh
+bash skills/web-search/scripts/start-server.sh
 
 # 2. Search for topic
-bash SKILLs/web-search/scripts/search.sh "React Server Components" 5
+bash skills/web-search/scripts/search.sh "React Server Components" 5
 
 # 3. Search for related topic
-bash SKILLs/web-search/scripts/search.sh "Next.js 14 features" 5
+bash skills/web-search/scripts/search.sh "Next.js 14 features" 5
 
 # 4. Search for comparisons
-bash SKILLs/web-search/scripts/search.sh "RSC vs traditional React" 3
+bash skills/web-search/scripts/search.sh "RSC vs traditional React" 3
 
 # 5. Stop server when done
-bash SKILLs/web-search/scripts/stop-server.sh
+bash skills/web-search/scripts/stop-server.sh
 ```
 
 ## Integration with Cowork Sessions
@@ -285,7 +285,7 @@ Example Cowork interaction:
 User: What are the new features in React 19?
 
 Claude: Let me search for the latest information about React 19.
-        [Calls: bash SKILLs/web-search/scripts/search.sh "React 19 new features" 5]
+        [Calls: bash skills/web-search/scripts/search.sh "React 19 new features" 5]
 
         Based on the search results, React 19 introduces several key features:
         1. React Compiler - automatic optimization
@@ -306,10 +306,10 @@ Claude: Let me search for the latest information about React 19.
 lsof -i :8923
 
 # Check logs
-cat SKILLs/web-search/.server.log
+cat skills/web-search/.server.log
 
 # Reinstall dependencies
-cd SKILLs/web-search
+cd skills/web-search
 npm install
 npm run build
 ```
@@ -331,14 +331,14 @@ npm run build
 **Solution:**
 ```bash
 # Stop the server
-bash SKILLs/web-search/scripts/stop-server.sh
+bash skills/web-search/scripts/stop-server.sh
 
 # Clear cache
-rm SKILLs/web-search/.connection
-rm SKILLs/web-search/.server.pid
+rm skills/web-search/.connection
+rm skills/web-search/.server.pid
 
 # Restart
-bash SKILLs/web-search/scripts/start-server.sh
+bash skills/web-search/scripts/start-server.sh
 ```
 
 ### Search Timeout

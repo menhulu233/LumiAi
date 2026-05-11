@@ -35,11 +35,11 @@ Once `npx` is present, proceed with the wrapper script. A global install of `pla
 ## Skill path (set once)
 
 ```bash
-export SKILLS_ROOT="${LUMIAI_SKILLS_ROOT:-${SKILLS_ROOT:-$HOME/Library/Application Support/LumiAi/SKILLs}}"
+export SKILLS_ROOT="${LUMIAI_SKILLS_ROOT:-${SKILLS_ROOT:-$HOME/Library/Application Support/LumiAi/skills}}"
 export PWCLI="$SKILLS_ROOT/playwright/scripts/playwright_cli.sh"
 ```
 
-Installed skills resolve from `$LUMIAI_SKILLS_ROOT` / `$SKILLS_ROOT` (production default: app `userData/SKILLs`, macOS usually `~/Library/Application Support/LumiAi/SKILLs`).
+Installed skills resolve from `$LUMIAI_SKILLS_ROOT` / `$SKILLS_ROOT` (production default: app `userData/skills`, macOS usually `~/Library/Application Support/LumiAi/skills`).
 
 ## Quick start
 

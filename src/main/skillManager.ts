@@ -243,7 +243,7 @@ type SkillsConfig = {
   defaults: Record<string, SkillDefaultConfig>;
 };
 
-const SKILLS_DIR_NAME = 'SKILLs';
+const SKILLS_DIR_NAME = 'skills';
 const SKILL_FILE_NAME = 'SKILL.md';
 const SKILLS_CONFIG_FILE = 'skills.config.json';
 const SKILL_STATE_KEY = 'skills_state';
@@ -1494,13 +1494,13 @@ export class SkillManager {
 
   private getBundledSkillsRoot(): string {
     if (app.isPackaged) {
-      // In production, bundled SKILLs should be in Resources/SKILLs.
+      // In production, bundled skills should be in Resources/skills.
       const resourcesRoot = path.resolve(process.resourcesPath, SKILLS_DIR_NAME);
       if (fs.existsSync(resourcesRoot)) {
         return resourcesRoot;
       }
 
-      // Fallback for older packages where SKILLs are inside app.asar.
+      // Fallback for older packages where skills are inside app.asar.
       return path.resolve(app.getAppPath(), SKILLS_DIR_NAME);
     }
 

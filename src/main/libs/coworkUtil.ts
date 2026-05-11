@@ -1267,25 +1267,25 @@ function verifyNodeEnvironment(env: Record<string, string | undefined>): void {
 }
 
 /**
- * Get SKILLs directory path (handles both development and production)
+ * Get skills directory path (handles both development and production)
  */
 export function getSkillsRoot(): string {
   if (app.isPackaged) {
-    // In production, SKILLs are copied to userData
-    return join(app.getPath('userData'), 'SKILLs');
+    // In production, skills are copied to userData
+    return join(app.getPath('userData'), 'skills');
   }
 
   // In development, __dirname can vary with bundling output (e.g. dist-electron/ or dist-electron/libs/).
-  // Resolve from several stable anchors and pick the first existing SKILLs directory.
+  // Resolve from several stable anchors and pick the first existing skills directory.
   const envRoots = [process.env.LUMIAI_SKILLS_ROOT, process.env.SKILLS_ROOT]
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value));
   const candidates = [
     ...envRoots,
-    join(app.getAppPath(), 'SKILLs'),
-    join(process.cwd(), 'SKILLs'),
-    join(__dirname, '..', 'SKILLs'),
-    join(__dirname, '..', '..', 'SKILLs'),
+    join(app.getAppPath(), 'skills'),
+    join(process.cwd(), 'skills'),
+    join(__dirname, '..', 'skills'),
+    join(__dirname, '..', '..', 'skills'),
   ];
 
   for (const candidate of candidates) {
@@ -1294,8 +1294,8 @@ export function getSkillsRoot(): string {
     }
   }
 
-  // Final fallback for first-run dev environments where SKILLs may not exist yet.
-  return join(app.getAppPath(), 'SKILLs');
+  // Final fallback for first-run dev environments where skills may not exist yet.
+  return join(app.getAppPath(), 'skills');
 }
 
 /**
@@ -1310,7 +1310,7 @@ export async function getEnhancedEnv(target: OpenAICompatProxyTarget = 'local'):
 
   applyPackagedEnvOverrides(env);
 
-  // Inject SKILLs directory path for skill scripts.
+  // Inject skills directory path for skill scripts.
   // On Windows, normalise backslashes to forward slashes so the value is usable
   // in both Node.js (which accepts forward slashes) and bash (which treats
   // backslashes as escape characters).
