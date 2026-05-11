@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { app } from 'electron';
-import type { SqliteStore } from '../sqliteStore';
+import type { KvStore } from '../system/store/kvStore';
 import type { CoworkApiConfig } from './coworkConfigStore';
 import {
   configureCoworkOpenAICompatProxy,
@@ -48,13 +48,13 @@ export type ApiConfigResolution = {
 };
 
 // Store getter function injected from main.ts
-let storeGetter: (() => SqliteStore | null) | null = null;
+let storeGetter: (() => KvStore | null) | null = null;
 
-export function setStoreGetter(getter: () => SqliteStore | null): void {
+export function setStoreGetter(getter: () => KvStore | null): void {
   storeGetter = getter;
 }
 
-const getStore = (): SqliteStore | null => {
+const getStore = (): KvStore | null => {
   if (!storeGetter) {
     return null;
   }

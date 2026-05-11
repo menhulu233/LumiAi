@@ -1,7 +1,7 @@
 import { app, Tray, Menu, nativeImage, BrowserWindow } from 'electron';
 import path from 'path';
 import { APP_NAME } from './appConstants';
-import type { SqliteStore } from './sqliteStore';
+import type { KvStore } from './system/store/kvStore';
 
 let tray: Tray | null = null;
 let contextMenu: Menu | null = null;
@@ -26,7 +26,7 @@ function getTrayIconPath(): string {
   return path.join(basePath, 'tray-icon.png');
 }
 
-function getLabels(store: SqliteStore): { showWindow: string; newTask: string; settings: string; quit: string } {
+function getLabels(store: KvStore): { showWindow: string; newTask: string; settings: string; quit: string } {
   try {
     const config = store.get<{ language?: string }>('app_config');
     const lang = config?.language === 'en' ? 'en' : 'zh';
@@ -38,7 +38,7 @@ function getLabels(store: SqliteStore): { showWindow: string; newTask: string; s
   }
 }
 
-function buildContextMenu(getWindow: () => BrowserWindow | null, store: SqliteStore): Menu {
+function buildContextMenu(getWindow: () => BrowserWindow | null, store: KvStore): Menu {
   const labels = getLabels(store);
 
   return Menu.buildFromTemplate([
@@ -85,7 +85,7 @@ function buildContextMenu(getWindow: () => BrowserWindow | null, store: SqliteSt
   ]);
 }
 
-export function createTray(getWindow: () => BrowserWindow | null, store: SqliteStore): Tray {
+export function createTray(getWindow: () => BrowserWindow | null, store: KvStore): Tray {
   if (tray) {
     return tray;
   }
@@ -126,7 +126,7 @@ export function createTray(getWindow: () => BrowserWindow | null, store: SqliteS
   return tray;
 }
 
-export function updateTrayMenu(getWindow: () => BrowserWindow | null, store: SqliteStore): void {
+export function updateTrayMenu(getWindow: () => BrowserWindow | null, store: KvStore): void {
   if (!tray) return;
   contextMenu = buildContextMenu(getWindow, store);
 }

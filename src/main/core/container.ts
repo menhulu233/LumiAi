@@ -1,4 +1,4 @@
-import type { SqliteStore } from '../sqliteStore';
+import type { KvStore } from '../system/store/kvStore';
 import type { CoworkStore } from '../coworkStore';
 import type { CoworkRunner } from '../libs/coworkRunner';
 import type { SkillManager } from '../skillManager';
@@ -8,7 +8,7 @@ import type { ScheduledTaskStore } from '../scheduledTaskStore';
 import type { Scheduler } from '../libs/scheduler';
 
 export interface Container {
-  store: SqliteStore;
+  store: KvStore;
   coworkStore: CoworkStore;
   coworkRunner: CoworkRunner;
   skillManager: SkillManager;

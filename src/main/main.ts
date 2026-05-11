@@ -5,7 +5,7 @@ import { broadcastToAllWindows } from './core/broadcaster';
 import { setContainer } from './core/container';
 import fs from 'fs';
 import os from 'os';
-import { SqliteStore } from './sqliteStore';
+import { KvStore } from './system/store/kvStore';
 import { CoworkStore } from './coworkStore';
 import { CoworkRunner } from './libs/coworkRunner';
 import { SkillManager } from './skillManager';
@@ -28,12 +28,12 @@ import { initLogger, getLogFilePath } from './logger';
 import { getCoworkLogPath } from './libs/coworkLogger';
 import { exportLogsZip } from './libs/logExport';
 import { ensurePythonRuntimeReady } from './libs/pythonRuntime';
-import {
-  applySystemProxyEnv,
-  resolveSystemProxyUrl,
-  restoreOriginalProxyEnv,
-  setSystemProxyEnabled,
-} from './libs/systemProxy';
+import { applyProxyPreference } from './system/service/proxyService';
+import { checkCalendarPermission, requestCalendarPermission } from './system/service/permissionService';
+import { coworkMigrations } from './domains/cowork/store/_migrations';
+import { memoryMigrations } from './domains/cowork/store/_memoryMigrations';
+import { scheduledTaskMigrations } from './domains/scheduled-task/store/_migrations';
+import { mcpMigrations } from './domains/mcp/store/_migrations';
 import { sanitizeCoworkMessageForIpc, sanitizePermissionRequestForIpc, truncateIpcString, IPC_UPDATE_CONTENT_MAX_CHARS } from './utils/sanitize';
 import { configureUserDataPath, sanitizeExportFileName, sanitizeAttachmentFileName, ensurePngFileName, ensureZipFileName, normalizeWindowsShellPath } from './utils/paths';
 import { clampMemoryUserMemoriesMaxItems } from './utils/validators';
@@ -181,97 +181,6 @@ const TITLEBAR_COLORS = {
   light: { color: '#F3F4F6', symbolColor: '#1A1D23' },
 } as const;
 
-// ==================== macOS Permissions ====================
-
-/**
- * Check calendar permission on macOS by attempting to access Calendar app
- * Returns: 'authorized' | 'denied' | 'restricted' | 'not-determined'
- * On Windows, checks if Outlook is available
- * On Linux, returns 'not-supported'
- */
-const checkCalendarPermission = async (): Promise<string> => {
-  if (process.platform === 'darwin') {
-    try {
-      // Try to access Calendar to check permission
-      const { exec } = require('child_process');
-      const util = require('util');
-      const execAsync = util.promisify(exec);
-
-      // Quick test to see if we can access Calendar
-      await execAsync('osascript -l JavaScript -e \'Application("Calendar").name()\'', { timeout: 5000 });
-      console.log('[Permissions] macOS Calendar access: authorized');
-      return 'authorized';
-    } catch (error: any) {
-      // Check if it's a permission error
-      if (error.stderr?.includes('不能获取对象') ||
-          error.stderr?.includes('not authorized') ||
-          error.stderr?.includes('Permission denied')) {
-        console.log('[Permissions] macOS Calendar access: not-determined (needs permission)');
-        return 'not-determined';
-      }
-      console.warn('[Permissions] Failed to check macOS calendar permission:', error);
-      return 'not-determined';
-    }
-  }
-
-  if (process.platform === 'win32') {
-    // Windows doesn't have a system-level calendar permission like macOS
-    // Instead, we check if Outlook is available
-    try {
-      const { exec } = require('child_process');
-      const util = require('util');
-      const execAsync = util.promisify(exec);
-
-      // Check if Outlook COM object is accessible
-      const checkScript = `
-        try {
-          $Outlook = New-Object -ComObject Outlook.Application
-          $Outlook.Version
-        } catch { exit 1 }
-      `;
-      await execAsync('powershell -Command "' + checkScript + '"', { timeout: 10000 });
-      console.log('[Permissions] Windows Outlook is available');
-      return 'authorized';
-    } catch (error) {
-      console.log('[Permissions] Windows Outlook not available or not accessible');
-      return 'not-determined';
-    }
-  }
-
-  return 'not-supported';
-};
-
-/**
- * Request calendar permission on macOS
- * On Windows, attempts to initialize Outlook COM object
- */
-const requestCalendarPermission = async (): Promise<boolean> => {
-  if (process.platform === 'darwin') {
-    try {
-      // On macOS, we trigger permission by trying to access Calendar
-      // The system will show permission dialog if needed
-      const { exec } = require('child_process');
-      const util = require('util');
-      const execAsync = util.promisify(exec);
-
-      await execAsync('osascript -l JavaScript -e \'Application("Calendar").calendars()[0].name()\'', { timeout: 10000 });
-      return true;
-    } catch (error) {
-      console.warn('[Permissions] Failed to request macOS calendar permission:', error);
-      return false;
-    }
-  }
-
-  if (process.platform === 'win32') {
-    // Windows doesn't have a permission dialog for COM objects
-    // We just check if Outlook is available
-    const status = await checkCalendarPermission();
-    return status === 'authorized';
-  }
-
-  return false;
-};
-
 // 配置应用
 if (isLinux) {
   app.commandLine.appendSwitch('no-sandbox');
@@ -331,7 +240,7 @@ process.on('exit', (code) => {
   console.log(`[Main] Process exiting with code: ${code}`);
 });
 
-let store: SqliteStore | null = null;
+let store: KvStore | null = null;
 let coworkStore: CoworkStore | null = null;
 let coworkRunner: CoworkRunner | null = null;
 let skillManager: SkillManager | null = null;
@@ -339,15 +248,20 @@ let mcpStore: McpStore | null = null;
 let imGatewayManager: IMGatewayManager | null = null;
 let scheduledTaskStore: ScheduledTaskStore | null = null;
 let scheduler: Scheduler | null = null;
-let storeInitPromise: Promise<SqliteStore> | null = null;
+let storeInitPromise: Promise<KvStore> | null = null;
 
-const initStore = async (): Promise<SqliteStore> => {
+const initStore = async (): Promise<KvStore> => {
   if (!storeInitPromise) {
     if (!app.isReady()) {
       throw new Error('Store accessed before app is ready.');
     }
     storeInitPromise = Promise.race([
-      SqliteStore.create(app.getPath('userData')),
+      KvStore.create(app.getPath('userData'), [
+        ...coworkMigrations,
+        ...memoryMigrations,
+        ...scheduledTaskMigrations,
+        ...mcpMigrations,
+      ]),
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Store initialization timed out after 15s')), 15_000)
       ),
@@ -356,17 +270,163 @@ const initStore = async (): Promise<SqliteStore> => {
   return storeInitPromise;
 };
 
-const getStore = (): SqliteStore => {
+const getStore = (): KvStore => {
   if (!store) {
     throw new Error('Store not initialized. Call initStore() first.');
   }
   return store;
 };
 
+// ==================== Legacy Migration Helpers ====================
+// These are temporary helpers moved from sqliteStore.ts.
+// They will be cleaned up in a future refactoring task.
+
+const USER_MEMORIES_MIGRATION_KEY = 'userMemories.migration.v1.completed';
+
+function tryReadLegacyMemoryText(): string {
+  const candidates = [
+    path.join(process.cwd(), 'MEMORY.md'),
+    path.join(app.getAppPath(), 'MEMORY.md'),
+    path.join(process.cwd(), 'memory.md'),
+    path.join(app.getAppPath(), 'memory.md'),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+        return fs.readFileSync(candidate, 'utf8');
+      }
+    } catch {
+      // Skip unreadable candidates.
+    }
+  }
+  return '';
+}
+
+function parseLegacyMemoryEntries(raw: string): string[] {
+  const normalized = raw.replace(/```[\s\S]*?```/g, ' ');
+  const lines = normalized.split(/\r?\n/);
+  const entries: string[] = [];
+  const seen = new Set<string>();
+
+  for (const line of lines) {
+    const match = line.trim().match(/^-+\s*(?:\[[^\]]+\]\s*)?(.+)$/);
+    if (!match?.[1]) continue;
+    const text = match[1].replace(/\s+/g, ' ').trim();
+    if (!text || text.length < 6) continue;
+    if (/^\(empty\)$/i.test(text)) continue;
+    const key = text.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    entries.push(text.length > 360 ? `${text.slice(0, 359)}…` : text);
+  }
+
+  return entries.slice(0, 200);
+}
+
+function memoryFingerprint(text: string): string {
+  const normalized = text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return require('crypto').createHash('sha1').update(normalized).digest('hex');
+}
+
+function migrateLegacyMemoryFileToUserMemories(db: any, storeGet: (key: string) => any, storeSet: (key: string, value: any) => void): void {
+  if (storeGet(USER_MEMORIES_MIGRATION_KEY) === '1') {
+    return;
+  }
+
+  const content = tryReadLegacyMemoryText();
+  if (!content.trim()) {
+    storeSet(USER_MEMORIES_MIGRATION_KEY, '1');
+    return;
+  }
+
+  const entries = parseLegacyMemoryEntries(content);
+  if (entries.length === 0) {
+    storeSet(USER_MEMORIES_MIGRATION_KEY, '1');
+    return;
+  }
+
+  const now = Date.now();
+  const crypto = require('crypto');
+  db.run('BEGIN TRANSACTION;');
+  try {
+    for (const text of entries) {
+      const fp = memoryFingerprint(text);
+      const existing = db.exec(
+        `SELECT id FROM user_memories WHERE fingerprint = ? AND status != 'deleted' LIMIT 1`,
+        [fp]
+      );
+      if (existing[0]?.values?.[0]?.[0]) {
+        continue;
+      }
+
+      const memoryId = crypto.randomUUID();
+      db.run(`
+        INSERT INTO user_memories (
+          id, text, fingerprint, confidence, is_explicit, status, created_at, updated_at, last_used_at
+        ) VALUES (?, ?, ?, ?, 1, 'created', ?, ?, NULL)
+      `, [memoryId, text, fp, 0.9, now, now]);
+
+      db.run(`
+        INSERT INTO user_memory_sources (id, memory_id, session_id, message_id, role, is_active, created_at)
+        VALUES (?, ?, NULL, NULL, 'system', 1, ?)
+      `, [crypto.randomUUID(), memoryId, now]);
+    }
+
+    db.run('COMMIT;');
+  } catch (error) {
+    db.run('ROLLBACK;');
+    console.warn('Failed to migrate legacy MEMORY.md entries:', error);
+  }
+
+  storeSet(USER_MEMORIES_MIGRATION_KEY, '1');
+}
+
+function migrateFromElectronStore(db: any, userDataPath: string, saveFn: () => void): void {
+  const result = db.exec('SELECT COUNT(*) as count FROM kv');
+  const count = result[0]?.values[0]?.[0] as number;
+  if (count > 0) return;
+
+  const legacyPath = path.join(userDataPath, 'config.json');
+  if (!fs.existsSync(legacyPath)) return;
+
+  try {
+    const raw = fs.readFileSync(legacyPath, 'utf8');
+    const data = JSON.parse(raw) as Record<string, unknown>;
+    if (!data || typeof data !== 'object') return;
+
+    const entries = Object.entries(data);
+    if (!entries.length) return;
+
+    const now = Date.now();
+    db.run('BEGIN TRANSACTION;');
+    try {
+      entries.forEach(([key, value]) => {
+        db.run(`
+          INSERT INTO kv (key, value, updated_at)
+          VALUES (?, ?, ?)
+        `, [key, JSON.stringify(value), now]);
+      });
+      db.run('COMMIT;');
+      saveFn();
+      console.info(`Migrated ${entries.length} entries from electron-store.`);
+    } catch (error) {
+      db.run('ROLLBACK;');
+      throw error;
+    }
+  } catch (error) {
+    console.warn('Failed to migrate electron-store data:', error);
+  }
+}
+
 const getCoworkStore = () => {
   if (!coworkStore) {
-    const sqliteStore = getStore();
-    coworkStore = new CoworkStore(sqliteStore.getDatabase(), sqliteStore.getSaveFunction());
+    const kvStore = getStore();
+    coworkStore = new CoworkStore(kvStore.getDatabase(), () => kvStore.save());
     const cleaned = coworkStore.autoDeleteNonPersonalMemories();
     if (cleaned > 0) {
       console.info(`[cowork-memory] Auto-deleted ${cleaned} non-personal/procedural memories`);
@@ -447,23 +507,23 @@ const getSkillManager = () => {
 
 const getMcpStore = () => {
   if (!mcpStore) {
-    const sqliteStore = getStore();
-    mcpStore = new McpStore(sqliteStore.getDatabase(), sqliteStore.getSaveFunction());
+    const kvStore = getStore();
+    mcpStore = new McpStore(kvStore.getDatabase(), () => kvStore.save());
   }
   return mcpStore;
 };
 
 const getIMGatewayManager = () => {
   if (!imGatewayManager) {
-    const sqliteStore = getStore();
+    const kvStore = getStore();
 
     // Get Cowork dependencies for IM Cowork mode
     const runner = getCoworkRunner();
     const store = getCoworkStore();
 
     imGatewayManager = new IMGatewayManager(
-      sqliteStore.getDatabase(),
-      sqliteStore.getSaveFunction(),
+      kvStore.getDatabase(),
+      () => kvStore.save(),
       {
         coworkRunner: runner,
         coworkStore: store,
@@ -473,7 +533,7 @@ const getIMGatewayManager = () => {
     // Initialize with LLM config provider
     imGatewayManager.initialize({
       getLLMConfig: async () => {
-        const appConfig = sqliteStore.get<any>('app_config');
+        const appConfig = kvStore.get<any>('app_config');
         if (!appConfig) return null;
 
         // Find first enabled provider
@@ -524,8 +584,8 @@ const getIMGatewayManager = () => {
 
 const getScheduledTaskStore = () => {
   if (!scheduledTaskStore) {
-    const sqliteStore = getStore();
-    scheduledTaskStore = new ScheduledTaskStore(sqliteStore.getDatabase(), sqliteStore.getSaveFunction());
+    const kvStore = getStore();
+    scheduledTaskStore = new ScheduledTaskStore(kvStore.getDatabase(), () => kvStore.save());
   }
   return scheduledTaskStore;
 };
@@ -619,31 +679,6 @@ const updateTitleBarOverlay = () => {
   const config = getStore().get<AppConfigSettings>('app_config');
   const theme = resolveThemeFromConfig(config);
   mainWindow.setBackgroundColor(theme === 'dark' ? '#0F1117' : '#F8F9FB');
-};
-
-const applyProxyPreference = async (useSystemProxy: boolean): Promise<void> => {
-  try {
-    await session.defaultSession.setProxy({ mode: useSystemProxy ? 'system' : 'direct' });
-  } catch (error) {
-    console.error('[Main] Failed to apply session proxy mode:', error);
-  }
-
-  setSystemProxyEnabled(useSystemProxy);
-
-  if (!useSystemProxy) {
-    restoreOriginalProxyEnv();
-    console.log('[Main] System proxy disabled (direct mode).');
-    return;
-  }
-
-  const proxyUrl = await resolveSystemProxyUrl('https://openrouter.ai');
-  applySystemProxyEnv(proxyUrl);
-
-  if (proxyUrl) {
-    console.log('[Main] System proxy enabled for process env:', proxyUrl);
-  } else {
-    console.warn('[Main] System proxy mode enabled, but no proxy endpoint was resolved (DIRECT).');
-  }
 };
 
 const emitWindowState = () => {
@@ -2417,6 +2452,15 @@ if (!gotTheLock) {
     console.log('[Main] initApp: starting initStore()');
     store = await initStore();
     console.log('[Main] initApp: store initialized');
+
+    // Run legacy migrations (moved from sqliteStore.ts)
+    try {
+      migrateLegacyMemoryFileToUserMemories(store.getDatabase(), (key) => store!.get(key), (key, value) => store!.set(key, value));
+      migrateFromElectronStore(store.getDatabase(), app.getPath('userData'), () => store!.save());
+      console.log('[Main] initApp: legacy migrations done');
+    } catch (error) {
+      console.warn('[Main] initApp: legacy migrations failed:', error);
+    }
 
     // Defensive recovery: app may be force-closed during execution and leave
     // stale running flags in DB. Normalize them on startup.

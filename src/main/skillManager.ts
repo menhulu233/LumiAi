@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import extractZip from 'extract-zip';
-import { SqliteStore } from './sqliteStore';
+import { KvStore } from './system/store/kvStore';
 import { cpRecursiveSync } from './fsCompat';
 import { getElectronNodeRuntimePath } from './libs/coworkUtil';
 import { appendPythonRuntimeToEnv } from './libs/pythonRuntime';
@@ -948,7 +948,7 @@ export class SkillManager {
   private watchers: fs.FSWatcher[] = [];
   private notifyTimer: NodeJS.Timeout | null = null;
 
-  constructor(private getStore: () => SqliteStore) {}
+  constructor(private getStore: () => KvStore) {}
 
   getSkillsRoot(): string {
     return path.resolve(app.getPath('userData'), SKILLS_DIR_NAME);
