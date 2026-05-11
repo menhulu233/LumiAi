@@ -83,52 +83,6 @@ export interface DiscordGatewayStatus {
   lastOutboundAt: number | null;
 }
 
-// ==================== NIM (NetEase IM) Types ====================
-
-export type NimTeamPolicy = 'open' | 'allowlist' | 'disabled';
-
-export interface NimConfig {
-  enabled: boolean;
-  appKey: string;
-  account: string;
-  token: string;
-  accountWhitelist: string;
-  debug?: boolean;
-  // 群组消息配置
-  teamPolicy?: NimTeamPolicy;      // 群消息策略，默认 'disabled'
-  teamAllowlist?: string;          // 逗号分隔的群 ID 白名单
-  // QChat 圈组配置
-  qchatEnabled?: boolean;          // 是否启用圈组
-  qchatServerIds?: string;         // 逗号分隔的服务器 ID，空则自动发现
-}
-
-export interface NimGatewayStatus {
-  connected: boolean;
-  startedAt: number | null;
-  lastError: string | null;
-  botAccount: string | null;
-  lastInboundAt: number | null;
-  lastOutboundAt: number | null;
-}
-
-// ==================== Xiaomifeng Types ====================
-
-export interface XiaomifengConfig {
-  enabled: boolean;
-  clientId: string;    // 小蜜蜂平台的 NIM 账号 ID
-  secret: string;      // 用于 token 中继的密钥
-  debug?: boolean;
-}
-
-export interface XiaomifengGatewayStatus {
-  connected: boolean;
-  startedAt: number | null;
-  lastError: string | null;
-  botAccount: string | null;
-  lastInboundAt: number | null;
-  lastOutboundAt: number | null;
-}
-
 // ==================== QQ Types ====================
 
 export interface QQConfig {
@@ -166,7 +120,7 @@ export interface WecomGatewayStatus {
 
 // ==================== Common IM Types ====================
 
-export type IMPlatform = 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'nim' | 'xiaomifeng' | 'wecom';
+export type IMPlatform = 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'wecom';
 
 export interface IMGatewayConfig {
   dingtalk: DingTalkConfig;
@@ -174,8 +128,6 @@ export interface IMGatewayConfig {
   qq: QQConfig;
   telegram: TelegramConfig;
   discord: DiscordConfig;
-  nim: NimConfig;
-  xiaomifeng: XiaomifengConfig;
   wecom: WecomConfig;
   settings: IMSettings;
 }
@@ -191,8 +143,6 @@ export interface IMGatewayStatus {
   qq: QQGatewayStatus;
   telegram: TelegramGatewayStatus;
   discord: DiscordGatewayStatus;
-  nim: NimGatewayStatus;
-  xiaomifeng: XiaomifengGatewayStatus;
   wecom: WecomGatewayStatus;
 }
 
@@ -261,7 +211,6 @@ export type IMConnectivityCheckCode =
   | 'discord_group_requires_mention'
   | 'telegram_privacy_mode_hint'
   | 'dingtalk_bot_membership_hint'
-  | 'nim_p2p_only_hint'
   | 'qq_guild_mention_hint';
 
 export interface IMConnectivityCheck {
@@ -316,22 +265,6 @@ export const DEFAULT_DISCORD_CONFIG: DiscordConfig = {
   debug: true,
 };
 
-export const DEFAULT_NIM_CONFIG: NimConfig = {
-  enabled: false,
-  appKey: '',
-  account: '',
-  token: '',
-  accountWhitelist: '',
-  debug: true,
-};
-
-export const DEFAULT_XIAOMIFENG_CONFIG: XiaomifengConfig = {
-  enabled: false,
-  clientId: '',
-  secret: '',
-  debug: true,
-};
-
 export const DEFAULT_QQ_CONFIG: QQConfig = {
   enabled: false,
   appId: '',
@@ -357,8 +290,6 @@ export const DEFAULT_IM_CONFIG: IMGatewayConfig = {
   qq: DEFAULT_QQ_CONFIG,
   telegram: DEFAULT_TELEGRAM_CONFIG,
   discord: DEFAULT_DISCORD_CONFIG,
-  nim: DEFAULT_NIM_CONFIG,
-  xiaomifeng: DEFAULT_XIAOMIFENG_CONFIG,
   wecom: DEFAULT_WECOM_CONFIG,
   settings: DEFAULT_IM_SETTINGS,
 };
@@ -393,22 +324,6 @@ export const DEFAULT_IM_STATUS: IMGatewayStatus = {
     startedAt: null,
     lastError: null,
     botUsername: null,
-    lastInboundAt: null,
-    lastOutboundAt: null,
-  },
-  nim: {
-    connected: false,
-    startedAt: null,
-    lastError: null,
-    botAccount: null,
-    lastInboundAt: null,
-    lastOutboundAt: null,
-  },
-  xiaomifeng: {
-    connected: false,
-    startedAt: null,
-    lastError: null,
-    botAccount: null,
     lastInboundAt: null,
     lastOutboundAt: null,
   },

@@ -68,8 +68,6 @@ export class IMGatewayManager extends EventEmitter {
   private coworkRunner: CoworkRunner | null = null;
   private coworkStore: CoworkStore | null = null;
 
-  // NIM probe mutex: serializes concurrent connectivity tests
-
   constructor(db: Database, saveDb: () => void, options?: IMGatewayManagerOptions) {
     super();
 
@@ -157,10 +155,6 @@ export class IMGatewayManager extends EventEmitter {
     this.discordGateway.on('message', (message: IMMessage) => {
       this.emit('message', message);
     });
-
-    // NIM events
-
-    // Xiaomifeng events
 
     // QQ events
     this.qqGateway.on('connected', () => {
@@ -442,9 +436,6 @@ export class IMGatewayManager extends EventEmitter {
       }
     }
 
-    // Hot-update NIM config: if credential fields changed while gateway is connected,
-    // restart the gateway transparently so the SDK re-logs in with new credentials.
-
     // Hot-update DingTalk config: restart if credential fields changed
     if (config.dingtalk && this.dingtalkGateway) {
       const oldDt = previousConfig.dingtalk;
@@ -516,8 +507,6 @@ export class IMGatewayManager extends EventEmitter {
         }
       }
     }
-
-    // Hot-update Xiaomifeng config: restart if credential fields changed
 
     // Hot-update QQ config: restart if credential fields changed
     if (config.qq && this.qqGateway) {
@@ -776,12 +765,6 @@ export class IMGatewayManager extends EventEmitter {
         message: '钉钉机器人需被加入目标会话并具备发言权限。',
         suggestion: '请确认机器人在目标会话中，且企业权限配置允许收发消息。',
       });
-      addCheck({
-        code: 'nim_p2p_only_hint',
-        level: 'info',
-        message: '云信 IM 当前仅支持 P2P（私聊）消息。',
-        suggestion: '请通过私聊方式向机器人账号发送消息触发对话。',
-      });
     } else if (platform === 'qq') {
       addCheck({
         code: 'qq_guild_mention_hint',
@@ -791,7 +774,7 @@ export class IMGatewayManager extends EventEmitter {
       });
     } else if (platform === 'wecom') {
       addCheck({
-        code: 'nim_p2p_only_hint',
+        code: 'wecom_hint',
         level: 'info',
         message: '企业微信机器人通过 WebSocket 长连接接收消息。',
         suggestion: '请在企业微信中向机器人发送消息触发对话。群聊中需 @机器人。',
@@ -1175,24 +1158,6 @@ export class IMGatewayManager extends EventEmitter {
 
     return '未知平台。';
   }
-
-  /**
-   * Test NIM connectivity.
-   *
-   * NIM enforces single-device login per account: if a second client logs in
-   * with the same account, the first one is kicked offline. Therefore we CANNOT
-   *
-   * Strategy:
-   *    return immediately.
-   * 2. Otherwise, **stop the main gateway first** (if it has a stale SDK
-   *    instance), then create a temporary probe instance with its own data
-   *    path. After the probe completes, fully stop it, then **restart the
-   *    main gateway** so normal message reception resumes.
-   */
-
-  /**
-   * Internal NIM probe execution (called under mutex protection).
-   */
 
   private resolveFeishuDomain(domain: string, Lark: any): any {
     if (domain === 'lark') return Lark.Domain.Lark;

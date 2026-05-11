@@ -2939,10 +2939,10 @@ const Settings: React.FC<SettingsProps> = ({ onClose, initialTab, notice, onUpda
               </div>
 
               <p className="mt-5 text-xs dark:text-claude-darkTextSecondary text-claude-textSecondary">
-                {language === 'zh' ? '网易有道 版权所有' : 'NetEase Youdao. All rights reserved.'}
+                {language === 'zh' ? 'LumiAi 版权所有' : 'LumiAi. All rights reserved.'}
               </p>
               <p className="mt-1 text-xs dark:text-claude-darkTextSecondary text-claude-textSecondary">
-                Copyright &copy; {new Date().getFullYear()} NetEase Youdao. All Rights Reserved.
+                Copyright &copy; {new Date().getFullYear()} LumiAi. All Rights Reserved.
               </p>
             </div>
           </div>

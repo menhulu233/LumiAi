@@ -381,10 +381,10 @@ interface IElectronAPI {
   im: {
     getConfig: () => Promise<{ success: boolean; config?: IMGatewayConfig; error?: string }>;
     setConfig: (config: Partial<IMGatewayConfig>) => Promise<{ success: boolean; error?: string }>;
-    startGateway: (platform: 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'nim' | 'xiaomifeng' | 'wecom') => Promise<{ success: boolean; error?: string }>;
-    stopGateway: (platform: 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'nim' | 'xiaomifeng' | 'wecom') => Promise<{ success: boolean; error?: string }>;
+    startGateway: (platform: 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'wecom') => Promise<{ success: boolean; error?: string }>;
+    stopGateway: (platform: 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'wecom') => Promise<{ success: boolean; error?: string }>;
     testGateway: (
-      platform: 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'nim' | 'xiaomifeng' | 'wecom',
+      platform: 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'wecom',
       configOverride?: Partial<IMGatewayConfig>
     ) => Promise<{ success: boolean; result?: IMConnectivityTestResult; error?: string }>;
     getStatus: () => Promise<{ success: boolean; status?: IMGatewayStatus; error?: string }>;
@@ -422,8 +422,6 @@ interface IMGatewayConfig {
   qq: QQConfig;
   telegram: TelegramConfig;
   discord: DiscordConfig;
-  nim: NimConfig;
-  xiaomifeng: XiaomifengConfig;
   wecom: WecomConfig;
   settings: IMSettings;
 }
@@ -510,8 +508,6 @@ interface IMGatewayStatus {
   qq: QQGatewayStatus;
   telegram: TelegramGatewayStatus;
   discord: DiscordGatewayStatus;
-  nim: NimGatewayStatus;
-  xiaomifeng: XiaomifengGatewayStatus;
   wecom: WecomGatewayStatus;
 }
 
@@ -531,7 +527,6 @@ type IMConnectivityCheckCode =
   | 'discord_group_requires_mention'
   | 'telegram_privacy_mode_hint'
   | 'dingtalk_bot_membership_hint'
-  | 'nim_p2p_only_hint'
   | 'qq_guild_mention_hint';
 
 interface IMConnectivityCheck {
@@ -542,7 +537,7 @@ interface IMConnectivityCheck {
 }
 
 interface IMConnectivityTestResult {
-  platform: 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'nim' | 'xiaomifeng' | 'wecom';
+  platform: 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'wecom';
   testedAt: number;
   verdict: IMConnectivityVerdict;
   checks: IMConnectivityCheck[];
@@ -620,7 +615,7 @@ interface WecomGatewayStatus {
 }
 
 interface IMMessage {
-  platform: 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'nim' | 'xiaomifeng' | 'wecom';
+  platform: 'dingtalk' | 'feishu' | 'qq' | 'telegram' | 'discord' | 'wecom';
   messageId: string;
   conversationId: string;
   senderId: string;
