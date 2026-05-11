@@ -3,7 +3,7 @@
  * Configuration UI for DingTalk, Feishu and Telegram IM bots
  */
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { SignalIcon, XMarkIcon, CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { EyeIcon, EyeSlashIcon, XCircleIcon as XCircleIconSolid } from '@heroicons/react/20/solid';
@@ -36,21 +36,6 @@ const checkLevelColorClass: Record<IMConnectivityCheck['level'], string> = {
   warn: 'text-yellow-700 dark:text-yellow-300',
   fail: 'text-red-600 dark:text-red-400',
 };
-
-// Map of backend error messages to i18n keys
-const errorMessageI18nMap: Record<string, string> = {
-  '账号已在其它地方登录': 'kickedByOtherClient',
-};
-
-// Helper function to translate IM error messages
-function translateIMError(error: string | null): string {
-  if (!error) return '';
-  const i18nKey = errorMessageI18nMap[error];
-  if (i18nKey) {
-    return i18nService.t(i18nKey);
-  }
-  return error;
-}
 
 const IMSettings: React.FC = () => {
   const dispatch = useDispatch();
