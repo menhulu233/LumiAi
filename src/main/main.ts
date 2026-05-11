@@ -439,8 +439,6 @@ const requestCalendarPermission = async (): Promise<boolean> => {
   return false;
 };
 
-
-
 // 配置应用
 if (isLinux) {
   app.commandLine.appendSwitch('no-sandbox');
@@ -909,7 +907,6 @@ const scheduleReload = (reason: string, webContents?: WebContents) => {
   console.warn(`Reloading window due to ${reason}`);
   target.reloadIgnoringCache();
 };
-
 
 // 确保应用程序只有一个实例
 const gotTheLock = app.requestSingleInstanceLock();
