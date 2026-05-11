@@ -200,7 +200,49 @@ The Artifacts feature provides rich preview of code outputs similar to Claude's 
 
 ## Commit & Pull Request Guidelines
 
-- Recent history uses conventional prefixes like `feat:`, `refactor:`, and `chore:`; older commits include `feature:` and `Initial commit`.
-- Prefer `type: short imperative summary` (e.g., `feat: add artifact toolbar actions`).
+### Commit Message Format
+
+```
+title: [type(scope)] short summary
+description: detailed description of the change
+
+author: zhuman
+date: YYYY-MM-DD
+```
+
+### Type Categories
+
+| Type | Description |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `update` | Update existing functionality |
+| `style` | Code format change (no logic change) |
+| `refactor` | Code refactoring |
+| `perf` | Performance optimization |
+| `test` | Add test code |
+| `build` | Build tool or process change |
+| `chore` | Build process or auxiliary tool changes |
+| `revert` | Revert previous commit |
+| `docs` | Documentation change |
+
+### Examples
+
+```
+title: feat: add artifact preview panel
+description: implement resizable side panel for HTML/SVG/React/Mermaid preview
+
+author: zhuman
+date: 2026-05-11
+```
+
+```
+title: fix(cowork): resolve memory extraction timeout
+description: add TTL caching to prevent repeated LLM calls for same memory candidates
+
+author: zhuman
+date: 2026-05-11
+```
+
 - PRs should include a concise description, linked issue if applicable, and screenshots for UI changes.
 - Call out any Electron-specific behavior changes (IPC, storage, windowing) in the PR description.
