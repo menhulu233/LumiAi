@@ -1,7 +1,7 @@
 import type { KvStore } from '../system/store/kvStore';
 import type { CoworkStore } from '../domains/cowork/store';
 import type { CoworkRunner } from '../libs/coworkRunner';
-import type { SkillManager } from '../skillManager';
+import type { SkillManager } from '../domains/skill/skillManager';
 import type { McpStore } from '../mcpStore';
 import type { IMGatewayManager } from '../im';
 import type { ScheduledTaskStore } from '../scheduledTaskStore';

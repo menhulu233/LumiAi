@@ -8,7 +8,7 @@ import os from 'os';
 import { KvStore } from './system/store/kvStore';
 import { CoworkStore } from './domains/cowork/store';
 import { CoworkRunner } from './libs/coworkRunner';
-import { SkillManager } from './skillManager';
+import { SkillManager } from './domains/skill/skillManager';
 import type { PermissionResult } from '@anthropic-ai/claude-agent-sdk';
 import { getCurrentApiConfig, resolveCurrentApiConfig, setStoreGetter } from './libs/claudeSettings';
 import { saveCoworkApiConfig } from './libs/coworkConfigStore';
