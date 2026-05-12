@@ -17,8 +17,8 @@ import {
   AppConfigSettings,
   getUseSystemProxyFromConfig,
 } from './factories';
-import { setStoreGetter } from '../libs/claudeSettings';
-import { startCoworkOpenAICompatProxy, setScheduledTaskDeps } from '../libs/coworkOpenAICompatProxy';
+import { setStoreGetter } from '../domains/cowork/service/claudeSettings';
+import { startCoworkOpenAICompatProxy, setScheduledTaskDeps } from '../domains/cowork/service/coworkOpenAICompatProxy';
 import { getSkillServiceManager } from '../domains/skill/service/skillServiceManager';
 import { isAutoLaunched, setAutoLaunchEnabled } from '../system/service/autoLaunchService';
 import { createTray, updateTrayMenu } from '../system/service/trayService';

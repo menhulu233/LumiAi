@@ -1,6 +1,6 @@
 import type { KvStore } from '../system/store/kvStore';
 import type { CoworkStore } from '../domains/cowork/store';
-import type { CoworkRunner } from '../libs/coworkRunner';
+import type { CoworkRunner } from '../domains/cowork/service/coworkRunner';
 import type { SkillManager } from '../domains/skill/skillManager';
 import type { McpStore } from '../domains/mcp/store/mcpStore';
 import type { IMGatewayManager } from '../domains/im/service/imGatewayManager';

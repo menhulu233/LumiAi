@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import { KvStore } from '../system/store/kvStore';
 import { CoworkStore } from '../domains/cowork/store';
-import { CoworkRunner } from '../libs/coworkRunner';
+import { CoworkRunner } from '../domains/cowork/service/coworkRunner';
 import { SkillManager } from '../domains/skill/skillManager';
 import { McpStore } from '../domains/mcp/store/mcpStore';
 import { IMGatewayManager } from '../domains/im/service/imGatewayManager';

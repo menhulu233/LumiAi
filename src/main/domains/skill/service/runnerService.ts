@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { getElectronNodeRuntimePath } from '../../../libs/coworkUtil';
+import { getElectronNodeRuntimePath } from '../../cowork/service/coworkUtil';
 import {
   SkillScriptRunResult,
   EmailConnectivityCheckCode,

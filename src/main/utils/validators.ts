@@ -1,4 +1,4 @@
-import type { CoworkMemoryGuardLevel } from '../libs/coworkMemoryExtractor';
+import type { CoworkMemoryGuardLevel } from '../domains/cowork/service/coworkMemoryExtractor';
 
 const DEFAULT_MEMORY_ENABLED = true;
 const DEFAULT_MEMORY_IMPLICIT_UPDATE_ENABLED = true;

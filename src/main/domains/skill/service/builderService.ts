@@ -3,7 +3,7 @@ import { execSync, spawn, spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import extractZip from 'extract-zip';
-import { getElectronNodeRuntimePath } from '../../../libs/coworkUtil';
+import { getElectronNodeRuntimePath } from '../../cowork/service/coworkUtil';
 import { appendPythonRuntimeToEnv } from './pythonRuntime';
 import { SkillRegistryStore, cleanupPathSafely, normalizeFolderName, resolveWithin, isZipFile, compareVersions, SKILLS_DIR_NAME, SKILL_FILE_NAME } from '../store/registryStore';
 import { SkillRunnerService, runScriptWithTimeout } from './runnerService';

@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { app } from 'electron';
-import type { KvStore } from '../system/store/kvStore';
+import type { KvStore } from '../../../system/store/kvStore';
 import type { CoworkApiConfig } from './coworkConfigStore';
 import {
   configureCoworkOpenAICompatProxy,

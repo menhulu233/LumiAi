@@ -1,6 +1,6 @@
 import { app } from 'electron';
 import { broadcastToAllWindows } from './broadcaster';
-import { onSandboxProgress } from '../libs/coworkSandboxRuntime';
+import { onSandboxProgress } from '../domains/cowork/service/coworkSandboxRuntime';
 import { handleTerminationSignal, performAppQuit } from './cleanup';
 import { bootstrap } from './bootstrap';
 

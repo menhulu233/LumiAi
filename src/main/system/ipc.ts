@@ -4,13 +4,13 @@ import fs from 'fs';
 import type { Container } from '../core/container';
 import { checkCalendarPermission, requestCalendarPermission } from './service/permissionService';
 import { getLogFilePath } from '../core/logger';
-import { getCoworkLogPath } from '../libs/coworkLogger';
+import { getCoworkLogPath } from '../domains/cowork/service/coworkLogger';
 import { exportLogsZip } from './service/logExport';
 import { downloadUpdate, installUpdate, cancelActiveDownload } from './service/appUpdateInstaller';
 import { isAutoLaunched, getAutoLaunchEnabled, setAutoLaunchEnabled } from '../system/service/autoLaunchService';
-import { generateSessionTitle, probeCoworkModelReadiness } from '../libs/coworkUtil';
-import { getCurrentApiConfig, resolveCurrentApiConfig } from '../libs/claudeSettings';
-import { saveCoworkApiConfig } from '../libs/coworkConfigStore';
+import { generateSessionTitle, probeCoworkModelReadiness } from '../domains/cowork/service/coworkUtil';
+import { getCurrentApiConfig, resolveCurrentApiConfig } from '../domains/cowork/service/claudeSettings';
+import { saveCoworkApiConfig } from '../domains/cowork/service/coworkConfigStore';
 import {
   buildLogExportFileName,
   resolveInlineAttachmentDir,

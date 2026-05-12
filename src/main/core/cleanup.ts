@@ -7,7 +7,7 @@ import {
   getScheduler,
   getSkillManager,
 } from './factories';
-import { stopCoworkOpenAICompatProxy } from '../libs/coworkOpenAICompatProxy';
+import { stopCoworkOpenAICompatProxy } from '../domains/cowork/service/coworkOpenAICompatProxy';
 import { setIsQuitting } from './window';
 
 let isCleanupFinished = false;

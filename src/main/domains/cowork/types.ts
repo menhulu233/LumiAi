@@ -1,4 +1,4 @@
-import type { CoworkMemoryGuardLevel } from '../../libs/coworkMemoryExtractor';
+import type { CoworkMemoryGuardLevel } from './service/coworkMemoryExtractor';
 
 export type CoworkSessionStatus = 'idle' | 'running' | 'completed' | 'error';
 export type CoworkMessageType = 'user' | 'assistant' | 'tool_use' | 'tool_result' | 'system';

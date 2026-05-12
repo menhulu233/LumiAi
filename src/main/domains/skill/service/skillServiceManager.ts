@@ -7,7 +7,7 @@ import path from 'path';
 import fs from 'fs';
 import { app } from 'electron';
 import { cpRecursiveSync } from '../../../utils/fsCompat';
-import { getElectronNodeRuntimePath } from '../../../libs/coworkUtil';
+import { getElectronNodeRuntimePath } from '../../cowork/service/coworkUtil';
 import { appendPythonRuntimeToEnv } from './pythonRuntime';
 
 /**
