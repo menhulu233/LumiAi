@@ -37,7 +37,7 @@ export default defineConfig({
       },
       {
         // 预加载脚本入口文件
-        entry: 'src/main/preload.ts',
+        entry: 'src/main/core/preload.ts',
         vite: {
           build: {
             sourcemap: true,

@@ -17,7 +17,7 @@ import { IMChatHandler } from './imChatHandler';
 import { IMCoworkHandler } from './imCoworkHandler';
 import { IMStore } from './imStore';
 import { getOapiAccessToken } from './dingtalkMedia';
-import { fetchJsonWithTimeout } from '../utils/http';
+import { fetchJsonWithTimeout } from './http';
 import {
   IMGatewayConfig,
   IMGatewayStatus,

@@ -18,7 +18,7 @@ import {
 } from '../types';
 import { extractMediaFromMessage, cleanupOldMediaFiles } from '../service/telegramMedia';
 import { parseMediaMarkers } from '../utils/dingtalkMediaParser';
-import { fetchWithSystemProxy } from '../utils/http';
+import { fetchWithSystemProxy } from '../service/http';
 
 /**
  * Custom fetch wrapper that uses Node.js native AbortController
