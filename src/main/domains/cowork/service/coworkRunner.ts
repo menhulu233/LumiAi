@@ -35,6 +35,7 @@ import {
   persistFinalResult,
 } from './coworkRunnerStream';
 import { PermissionManager } from './coworkRunnerPermission';
+import { WorkspaceService } from './workspace/WorkspaceService';
 import {
   injectSandboxHistoryPrompt,
   injectLocalHistoryPrompt,
@@ -64,6 +65,7 @@ import {
   mergeNoProxyList,
   escapeXml,
 } from './coworkRunnerHelpers';
+import { ToolExecutionService } from './tools/ToolExecutionService';
 
 export * from './CoworkRunnerTypes';
 
@@ -315,6 +317,8 @@ export class CoworkRunner extends EventEmitter {
     url?: string;
     headers?: Record<string, string>;
   }>;
+  private toolExecution: ToolExecutionService;
+  private workspace: WorkspaceService;
 
   constructor(store: CoworkStore) {
     super();
@@ -322,6 +326,8 @@ export class CoworkRunner extends EventEmitter {
     this.permissionManager = new PermissionManager((event, sessionId, request) => {
       this.emit(event, sessionId, request);
     });
+    this.toolExecution = new ToolExecutionService(this.store);
+    this.workspace = new WorkspaceService(this.store);
   }
 
   setMcpServerProvider(provider: () => Array<{
