@@ -4,7 +4,7 @@ import {
   resolveSystemProxyUrl,
   restoreOriginalProxyEnv,
   setSystemProxyEnabled,
-} from '../../libs/systemProxy';
+} from './systemProxy';
 
 export async function applyProxyPreference(useSystemProxy: boolean): Promise<void> {
   try {

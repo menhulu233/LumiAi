@@ -28,7 +28,7 @@ import {
 } from '../service/feishuMedia';
 import { parseMediaMarkers } from '../utils/dingtalkMediaParser';
 import { stringifyAsciiJson } from '../utils/jsonEncoding';
-import { isSystemProxyEnabled, resolveSystemProxyUrl } from '../../../libs/systemProxy';
+import { isSystemProxyEnabled, resolveSystemProxyUrl } from '../../../system/service/systemProxy';
 
 // Message deduplication cache
 const processedMessages = new Map<string, number>();
