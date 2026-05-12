@@ -40,6 +40,7 @@ import {
   summarizeEndpointForLog,
   extractHostFromUrl,
   mergeNoProxyList,
+  escapeXml,
 } from './coworkRunnerHelpers';
 
 const SANDBOX_ALLOWED_ENV_KEYS = [
@@ -406,15 +407,6 @@ export class CoworkRunner extends EventEmitter {
     }
   }
 
-  private escapeXml(value: string): string {
-    return value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
-  }
-
   private buildUserMemoriesXml(): string {
     const config = this.store.getConfig();
     if (!config.memoryEnabled) {
@@ -440,7 +432,7 @@ export class CoworkRunner extends EventEmitter {
       const text = memory.text.length > MAX_ITEM_CHARS
         ? memory.text.slice(0, MAX_ITEM_CHARS) + '...'
         : memory.text;
-      const line = `- ${this.escapeXml(text)}`;
+      const line = `- ${escapeXml(text)}`;
       if (totalChars + line.length > MAX_TOTAL_CHARS) break;
       lines.push(line);
       totalChars += line.length;
@@ -462,7 +454,7 @@ export class CoworkRunner extends EventEmitter {
     return records.map((record) => {
       const updatedAtIso = new Date(record.updatedAt || Date.now()).toISOString();
       return [
-        `<chat url="${this.escapeXml(record.url)}" updated_at="${updatedAtIso}">`,
+        `<chat url="${escapeXml(record.url)}" updated_at="${updatedAtIso}">`,
         `Title: ${record.title || 'Untitled'}`,
         `Human: ${(record.human || '').trim() || '(empty)'}`,
         `Assistant: ${(record.assistant || '').trim() || '(empty)'}`,
