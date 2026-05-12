@@ -7,17 +7,17 @@ import { EventEmitter } from 'events';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import { DingTalkGateway } from './dingtalkGateway';
-import { FeishuGateway } from './feishuGateway';
-import { TelegramGateway } from './telegramGateway';
-import { DiscordGateway } from './discordGateway';
-import { QQGateway } from './qqGateway';
-import { WecomGateway } from './wecomGateway';
+import { DingTalkGateway } from '../gateway/dingtalkGateway';
+import { FeishuGateway } from '../gateway/feishuGateway';
+import { TelegramGateway } from '../gateway/telegramGateway';
+import { DiscordGateway } from '../gateway/discordGateway';
+import { QQGateway } from '../gateway/qqGateway';
+import { WecomGateway } from '../gateway/wecomGateway';
 import { IMChatHandler } from './imChatHandler';
 import { IMCoworkHandler } from './imCoworkHandler';
 import { IMStore } from './imStore';
 import { getOapiAccessToken } from './dingtalkMedia';
-import { fetchJsonWithTimeout } from './http';
+import { fetchJsonWithTimeout } from '../utils/http';
 import {
   IMGatewayConfig,
   IMGatewayStatus,
@@ -26,10 +26,10 @@ import {
   IMConnectivityCheck,
   IMConnectivityTestResult,
   IMConnectivityVerdict,
-} from './types';
+} from '../types';
 import type { Database } from 'sql.js';
-import type { CoworkRunner } from '../libs/coworkRunner';
-import type { CoworkStore } from '../domains/cowork/store';
+import type { CoworkRunner } from '../../../libs/coworkRunner';
+import type { CoworkStore } from '../../cowork/store';
 const CONNECTIVITY_TIMEOUT_MS = 10_000;
 const INBOUND_ACTIVITY_WARN_AFTER_MS = 2 * 60 * 1000;
 

@@ -120,11 +120,11 @@ LumiAi uses Electron's strict process isolation. All cross-process communication
 ### Process Model
 
 **Main Process** (`src/main/main.ts`):
-- Window lifecycle management
-- SQLite persistence
+- Thin entry — delegates to `src/main/core/app.ts` → `core/lifecycle.ts` → `core/bootstrap.ts`
+- Window lifecycle, SQLite persistence (`system/store/kvStore.ts`)
 - CoworkRunner — Claude Agent SDK execution engine
 - IM Gateways — DingTalk, Feishu, Telegram, Discord remote access
-- 40+ IPC channel handlers
+- 40+ IPC channels registered through `src/main/ipc/router.ts`
 - Security: context isolation enabled, node integration disabled, sandbox enabled
 
 **Preload Script** (`src/main/preload.ts`):
@@ -141,12 +141,19 @@ LumiAi uses Electron's strict process isolation. All cross-process communication
 ```
 src/
 ├── main/                           # Electron main process
-│   ├── main.ts                     # Entry point, IPC handlers
-│   ├── preload.ts                  # Security bridge
-│   ├── sqliteStore.ts              # SQLite storage
-│   ├── coworkStore.ts              # Session/message CRUD
-│   ├── skillManager.ts             # Skill management
-│   ├── im/                         # IM gateways (DingTalk/Feishu/Telegram/Discord)
+│   ├── main.ts                     # Thin entry (boots core/app)
+│   ├── preload.ts                  # Security bridge (contextBridge)
+│   ├── core/                       # Bootstrap, lifecycle, window, factories
+│   ├── ipc/router.ts               # Central IPC handler registration
+│   ├── system/
+│   │   ├── service/                # autoLaunch / tray / proxy / permission
+│   │   └── store/kvStore.ts        # SQLite kv store (sql.js)
+│   ├── domains/
+│   │   ├── cowork/                 # Cowork session/message/memory + ipc
+│   │   ├── skill/                  # Skill manager, registry, services, ipc
+│   │   ├── mcp/                    # MCP server CRUD + ipc
+│   │   ├── scheduled-task/         # Scheduled-task store + ipc
+│   │   └── im/                     # IM gateways (DingTalk/Feishu/Telegram/Discord)
 │   └── libs/
 │       ├── coworkRunner.ts         # Agent SDK executor
 │       ├── coworkVmRunner.ts       # Sandbox VM execution

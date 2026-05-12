@@ -14,7 +14,7 @@ import {
   IMMessage,
   IMMediaAttachment,
   DEFAULT_FEISHU_STATUS,
-} from './types';
+} from '../types';
 import {
   uploadImageToFeishu,
   uploadFileToFeishu,
@@ -25,10 +25,10 @@ import {
   downloadFeishuMedia,
   getFeishuDefaultMimeType,
   mapFeishuMediaType,
-} from './feishuMedia';
-import { parseMediaMarkers } from './dingtalkMediaParser';
-import { stringifyAsciiJson } from './jsonEncoding';
-import { isSystemProxyEnabled, resolveSystemProxyUrl } from '../libs/systemProxy';
+} from '../service/feishuMedia';
+import { parseMediaMarkers } from '../utils/dingtalkMediaParser';
+import { stringifyAsciiJson } from '../utils/jsonEncoding';
+import { isSystemProxyEnabled, resolveSystemProxyUrl } from '../../../libs/systemProxy';
 
 // Message deduplication cache
 const processedMessages = new Map<string, number>();

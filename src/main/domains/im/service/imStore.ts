@@ -22,7 +22,7 @@ import {
   DEFAULT_DISCORD_CONFIG,
   DEFAULT_WECOM_CONFIG,
   DEFAULT_IM_SETTINGS,
-} from './types';
+} from '../types';
 
 export class IMStore {
   private db: Database;

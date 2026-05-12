@@ -8,7 +8,7 @@
  * 该指令会被追加到系统提示词的末尾，确保 AI 始终了解自己的媒体发送能力。
  */
 
-import type { IMSettings } from './types';
+import type { IMSettings } from '../types';
 
 /**
  * Build the IM media sending instruction for system prompt.

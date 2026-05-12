@@ -1,7 +1,7 @@
-import { BrowserWindow, ipcMain, Menu, nativeImage, nativeTheme, app } from 'electron';
+import { BrowserWindow, ipcMain, Menu, nativeImage, nativeTheme, app, screen } from 'electron';
 import path from 'path';
 import fs from 'fs';
-import { APP_NAME } from '../appConstants';
+import { APP_NAME } from './constants';
 import { isDev, isMac, isWindows, DEV_SERVER_URL, PRELOAD_PATH, TITLEBAR_HEIGHT, TITLEBAR_COLORS } from './app';
 import { scheduleReload } from './reload';
 
@@ -107,9 +107,15 @@ export function createWindow(
 
   const config = getConfig();
 
+  const { width: workWidth, height: workHeight } = screen.getPrimaryDisplay().workArea;
+  const desiredWidth = 1200;
+  const desiredHeight = 800;
+  const winWidth = Math.min(desiredWidth, workWidth - 40);
+  const winHeight = Math.min(desiredHeight, workHeight - 60);
+
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: winWidth,
+    height: winHeight,
     title: APP_NAME,
     icon: getAppIconPath(),
     ...(isMac

@@ -6,8 +6,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
 import type { Context } from 'grammy';
-import type { IMMediaAttachment } from './types';
-import { fetchWithSystemProxy } from './http';
+import type { IMMediaAttachment } from '../types';
+import { fetchWithSystemProxy } from '../service/http';
 
 // 常量
 const MAX_FILE_SIZE = 20 * 1024 * 1024;  // Telegram Bot API 限制 20MB

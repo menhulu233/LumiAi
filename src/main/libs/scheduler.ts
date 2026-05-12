@@ -1,8 +1,8 @@
 import { BrowserWindow } from 'electron';
-import { ScheduledTaskStore, ScheduledTask, ScheduledTaskRun, Schedule, NotifyPlatform } from '../scheduledTaskStore';
+import { ScheduledTaskStore, ScheduledTask, ScheduledTaskRun, Schedule, NotifyPlatform } from '../domains/scheduled-task/store/scheduledTaskStore';
 import type { CoworkStore } from '../domains/cowork/store';
 import type { CoworkRunner } from './coworkRunner';
-import type { IMGatewayManager } from '../im/imGatewayManager';
+import type { IMGatewayManager } from '../domains/im/service/imGatewayManager';
 
 interface SchedulerDeps {
   scheduledTaskStore: ScheduledTaskStore;

@@ -1,6 +1,7 @@
 import { app, Tray, Menu, nativeImage, BrowserWindow } from 'electron';
 import path from 'path';
 import { APP_NAME } from '../../core/constants';
+import { setIsQuitting } from '../../core/window';
 import type { KvStore } from '../store/kvStore';
 
 let tray: Tray | null = null;
@@ -79,6 +80,7 @@ function buildContextMenu(getWindow: () => BrowserWindow | null, store: KvStore)
     {
       label: labels.quit,
       click: () => {
+        setIsQuitting(true);
         app.quit();
       },
     },

@@ -763,7 +763,7 @@ export class SkillBuilderService {
           targetDir = resolveWithin(root, `${folderName}-${suffix}`);
           suffix += 1;
         }
-        const { cpRecursiveSync } = await import('../../../fsCompat');
+        const { cpRecursiveSync } = await import('../../../utils/fsCompat');
         cpRecursiveSync(skillDir, targetDir);
       }
 

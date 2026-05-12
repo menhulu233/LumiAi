@@ -15,10 +15,10 @@ import {
   IMMessage,
   IMMediaAttachment,
   DEFAULT_TELEGRAM_STATUS,
-} from './types';
-import { extractMediaFromMessage, cleanupOldMediaFiles } from './telegramMedia';
-import { parseMediaMarkers } from './dingtalkMediaParser';
-import { fetchWithSystemProxy } from './http';
+} from '../types';
+import { extractMediaFromMessage, cleanupOldMediaFiles } from '../service/telegramMedia';
+import { parseMediaMarkers } from '../utils/dingtalkMediaParser';
+import { fetchWithSystemProxy } from '../utils/http';
 
 /**
  * Custom fetch wrapper that uses Node.js native AbortController

@@ -2,7 +2,7 @@
  * DingTalk Media Marker Parser
  * 解析文本中的媒体标记
  */
-import type { MediaMarker } from './types';
+import type { MediaMarker } from '../types';
 
 // 文件扩展名分类
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];

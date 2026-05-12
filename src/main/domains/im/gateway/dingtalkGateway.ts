@@ -15,12 +15,12 @@ import {
   IMMessage,
   IMMediaAttachment,
   DEFAULT_DINGTALK_STATUS,
-} from './types';
-import { uploadMediaToDingTalk, detectMediaType, getOapiAccessToken } from './dingtalkMedia';
-import { downloadDingtalkFile, getDefaultMimeType, mapDingtalkMediaType } from './dingtalkMediaDownload';
-import { parseMediaMarkers } from './dingtalkMediaParser';
-import { createUtf8JsonBody, JSON_UTF8_CONTENT_TYPE, stringifyAsciiJson } from './jsonEncoding';
-import { sanitizeLogArg, sanitizeLogArgs } from './logSanitizer';
+} from '../types';
+import { uploadMediaToDingTalk, detectMediaType, getOapiAccessToken } from '../service/dingtalkMedia';
+import { downloadDingtalkFile, getDefaultMimeType, mapDingtalkMediaType } from '../service/dingtalkMediaDownload';
+import { parseMediaMarkers } from '../utils/dingtalkMediaParser';
+import { createUtf8JsonBody, JSON_UTF8_CONTENT_TYPE, stringifyAsciiJson } from '../utils/jsonEncoding';
+import { sanitizeLogArg, sanitizeLogArgs } from '../utils/logSanitizer';
 
 const DINGTALK_API = 'https://api.dingtalk.com';
 

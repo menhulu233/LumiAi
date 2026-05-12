@@ -1,5 +1,5 @@
 import { app } from 'electron';
-import { APP_NAME } from './appConstants';
+import { APP_NAME } from './core/constants';
 import { configureUserDataPath } from './utils/paths';
 import { initApp } from './core/lifecycle';
 import { setupAppEventHandlers } from './core/app';

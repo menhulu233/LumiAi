@@ -5,8 +5,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
-import { fetchWithSystemProxy } from './http';
-import type { IMMediaType } from './types';
+import { fetchWithSystemProxy } from '../service/http';
+import type { IMMediaType } from '../types';
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 const INBOUND_DIR = 'qq-inbound';

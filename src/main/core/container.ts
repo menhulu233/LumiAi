@@ -2,9 +2,9 @@ import type { KvStore } from '../system/store/kvStore';
 import type { CoworkStore } from '../domains/cowork/store';
 import type { CoworkRunner } from '../libs/coworkRunner';
 import type { SkillManager } from '../domains/skill/skillManager';
-import type { McpStore } from '../mcpStore';
-import type { IMGatewayManager } from '../im';
-import type { ScheduledTaskStore } from '../scheduledTaskStore';
+import type { McpStore } from '../domains/mcp/store/mcpStore';
+import type { IMGatewayManager } from '../domains/im/service/imGatewayManager';
+import type { ScheduledTaskStore } from '../domains/scheduled-task/store/scheduledTaskStore';
 import type { Scheduler } from '../libs/scheduler';
 
 export interface Container {

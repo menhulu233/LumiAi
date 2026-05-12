@@ -21,9 +21,9 @@ import {
   IMMessage,
   IMMediaAttachment,
   DEFAULT_DISCORD_STATUS,
-} from './types';
-import { parseMediaMarkers, stripMediaMarkers } from './dingtalkMediaParser';
-import { downloadDiscordAttachment, mapDiscordContentType } from './discordMediaDownload';
+} from '../types';
+import { parseMediaMarkers, stripMediaMarkers } from '../utils/dingtalkMediaParser';
+import { downloadDiscordAttachment, mapDiscordContentType } from '../service/discordMediaDownload';
 
 export class DiscordGateway extends EventEmitter {
   private client: Client | null = null;

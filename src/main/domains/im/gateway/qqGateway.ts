@@ -12,8 +12,8 @@ import {
   IMMessage,
   IMMediaAttachment,
   DEFAULT_QQ_STATUS,
-} from './types';
-import { downloadQQAttachment, mapQQMediaType } from './qqMediaDownload';
+} from '../types';
+import { downloadQQAttachment, mapQQMediaType } from '../service/qqMediaDownload';
 
 export class QQGateway extends EventEmitter {
   private bot: any = null;

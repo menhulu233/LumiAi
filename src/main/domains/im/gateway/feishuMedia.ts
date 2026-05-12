@@ -6,7 +6,7 @@ import { Readable } from 'stream';
 import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
-import type { IMMediaType } from './types';
+import type { IMMediaType } from '../types';
 
 // Types
 export type FeishuFileType = 'opus' | 'mp4' | 'pdf' | 'doc' | 'xls' | 'ppt' | 'stream';

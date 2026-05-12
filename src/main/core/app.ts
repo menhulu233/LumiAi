@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
-import { APP_NAME } from '../appConstants';
+import { APP_NAME } from './constants';
 import { scheduleReload } from './reload';
 
 export const isDev = process.env.NODE_ENV === 'development';

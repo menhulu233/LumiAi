@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import { KvStore } from '../../../system/store/kvStore';
-import { cpRecursiveSync } from '../../../fsCompat';
+import { cpRecursiveSync } from '../../../utils/fsCompat';
 import {
   SkillRecord,
   SkillStateMap,

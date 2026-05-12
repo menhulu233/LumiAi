@@ -120,11 +120,11 @@ LumiAi 采用 Electron 严格进程隔离架构，所有跨进程通信通过 IP
 ### 进程模型
 
 **Main Process**（`src/main/main.ts`）：
-- 窗口生命周期管理
-- SQLite 数据持久化
+- 极薄入口，转交 `src/main/core/app.ts` → `core/lifecycle.ts` → `core/bootstrap.ts`
+- 窗口生命周期、SQLite 持久化（`system/store/kvStore.ts`）
 - CoworkRunner — Claude Agent SDK 执行引擎
 - IM 网关 — 钉钉、飞书、Telegram、Discord 远程接入
-- 40+ IPC 通道处理
+- 40+ IPC 通道通过 `src/main/ipc/router.ts` 统一注册
 - 安全：context isolation 启用，node integration 禁用，sandbox 启用
 
 **Preload Script**（`src/main/preload.ts`）：
@@ -141,12 +141,19 @@ LumiAi 采用 Electron 严格进程隔离架构，所有跨进程通信通过 IP
 ```
 src/
 ├── main/                           # Electron 主进程
-│   ├── main.ts                     # 入口，IPC 处理
-│   ├── preload.ts                  # 安全桥接
-│   ├── sqliteStore.ts              # SQLite 存储
-│   ├── coworkStore.ts              # 会话/消息 CRUD
-│   ├── skillManager.ts             # 技能管理
-│   ├── im/                         # IM 网关（钉钉/飞书/Telegram/Discord）
+│   ├── main.ts                     # 极薄入口（启动 core/app）
+│   ├── preload.ts                  # 安全桥接（contextBridge）
+│   ├── core/                       # 启动、生命周期、窗口、工厂
+│   ├── ipc/router.ts               # 集中式 IPC 处理注册
+│   ├── system/
+│   │   ├── service/                # 自启动 / 托盘 / 代理 / 权限
+│   │   └── store/kvStore.ts        # SQLite kv 存储（sql.js）
+│   ├── domains/
+│   │   ├── cowork/                 # Cowork 会话/消息/记忆 + ipc
+│   │   ├── skill/                  # Skill 管理、注册表、后台服务、ipc
+│   │   ├── mcp/                    # MCP 服务器 CRUD + ipc
+│   │   ├── scheduled-task/         # 定时任务存储 + ipc
+│   │   └── im/                     # IM 网关（钉钉/飞书/Telegram/Discord）
 │   └── libs/
 │       ├── coworkRunner.ts         # Agent SDK 执行器
 │       ├── coworkVmRunner.ts       # 沙箱 VM 执行

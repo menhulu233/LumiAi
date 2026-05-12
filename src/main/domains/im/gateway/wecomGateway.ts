@@ -9,7 +9,7 @@ import {
   WecomGatewayStatus,
   IMMessage,
   DEFAULT_WECOM_STATUS,
-} from './types';
+} from '../types';
 
 /** Message deduplication cache: messageId -> timestamp */
 const processedMessages = new Map<string, number>();

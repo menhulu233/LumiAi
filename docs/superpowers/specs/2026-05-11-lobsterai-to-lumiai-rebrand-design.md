@@ -40,9 +40,9 @@ Scripted bulk replacement followed by lint verification:
 
 ## Verification
 
-- [ ] `npm run lint` passes with no errors
-- [ ] `npm run build` succeeds
-- [ ] Application launches correctly in dev mode
+- [x] `npm run lint` passes with no errors
+- [x] `npm run build` succeeds
+- [x] Application launches correctly in dev mode
 
 ## Date
 

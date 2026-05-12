@@ -39,10 +39,11 @@ Uses strict process isolation with IPC communication.
 ### Process Model
 
 **Main Process** (`src/main/main.ts`):
-- Window lifecycle management
-- SQLite storage via `sql.js` (`src/main/sqliteStore.ts`)
-- Cowork session runner (`src/main/libs/coworkRunner.ts`) - executes Claude Agent SDK
-- IPC handlers for store, cowork, and API operations
+- Thin entry point — delegates to `src/main/core/app.ts` → `core/lifecycle.ts` → `core/bootstrap.ts`
+- Window lifecycle management (`src/main/core/window.ts`)
+- SQLite storage via `sql.js` (`src/main/system/store/kvStore.ts`)
+- Cowork session runner (`src/main/libs/coworkRunner.ts`) — executes Claude Agent SDK
+- IPC handlers registered through `src/main/ipc/router.ts`
 - Security: context isolation enabled, node integration disabled, sandbox enabled
 
 **Preload Script** (`src/main/preload.ts`):
@@ -57,15 +58,44 @@ Uses strict process isolation with IPC communication.
 
 ```
 src/main/
-├── main.ts              # Entry point, IPC handlers
-├── sqliteStore.ts       # SQLite database (kv + cowork tables)
-├── coworkStore.ts       # Cowork session/message CRUD operations
-└── libs/
-    ├── coworkRunner.ts          # Claude Agent SDK execution engine
-    ├── coworkVmRunner.ts        # Sandbox VM execution mode
-    ├── claudeSdk.ts             # SDK loader utilities
-    ├── coworkMemoryExtractor.ts # Extracts memory changes from conversations
-    └── coworkMemoryJudge.ts     # Validates memory candidates with scoring/LLM
+├── main.ts                          # Thin entry point (boots core/app)
+├── preload.ts                       # contextBridge / window.electron API
+├── core/                            # Application bootstrap & lifecycle
+│   ├── app.ts                       # Single-instance lock, app-level wiring
+│   ├── lifecycle.ts                 # before-quit / signal handlers
+│   ├── bootstrap.ts                 # whenReady → init store → window → IPC
+│   ├── cleanup.ts                   # Shutdown sequencing
+│   ├── factories.ts                 # Lazy getters for global stores/runners
+│   ├── container.ts                 # Service container access
+│   ├── window.ts                    # BrowserWindow creation & title bar
+│   ├── broadcaster.ts               # Broadcast IPC events to all windows
+│   ├── csp.ts                       # Content-Security-Policy headers
+│   ├── migrations.ts                # Legacy data migrations
+│   ├── reload.ts                    # Dev hot-reload helper
+│   ├── logger.ts                    # Console / file logging
+│   ├── constants.ts                 # APP_NAME, DB filenames, etc.
+│   └── api.ts                       # Shared LLM client config
+├── ipc/router.ts                    # Central IPC handler registration
+├── system/
+│   ├── service/                     # autoLaunch / tray / proxy / permission
+│   └── store/kvStore.ts             # SQLite kv store (sql.js)
+├── domains/
+│   ├── cowork/                      # Cowork session/message/memory stores + ipc
+│   ├── skill/                       # Skill manager, registry, services, ipc
+│   ├── mcp/                         # MCP server CRUD + ipc
+│   ├── scheduled-task/              # Scheduled-task store + ipc
+│   └── im/                          # IM gateways (DingTalk/Feishu/Telegram/Discord)
+├── libs/
+│   ├── coworkRunner.ts              # Claude Agent SDK execution engine
+│   ├── coworkVmRunner.ts            # Sandbox VM execution mode
+│   ├── coworkSandboxRuntime.ts      # Sandbox download/lifecycle
+│   ├── coworkOpenAICompatProxy.ts   # OpenAI-compat HTTP proxy
+│   ├── claudeSdk.ts                 # SDK loader utilities
+│   ├── coworkMemoryExtractor.ts     # Extracts memory changes from conversations
+│   ├── coworkMemoryJudge.ts         # Validates memory candidates (rules + LLM)
+│   ├── scheduler.ts                 # Scheduled task runner
+│   └── pythonRuntime.ts             # Bundled Python runtime helper
+└── utils/                           # Generic utilities (fs compat, etc.)
 
 src/renderer/
 ├── types/cowork.ts      # Cowork type definitions

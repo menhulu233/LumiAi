@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
 import { fetchWithSystemProxy } from './http';
-import type { IMMediaType } from './types';
+import type { IMMediaType } from '../types';
 
 const DINGTALK_API = 'https://api.dingtalk.com';
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB

@@ -8,7 +8,7 @@ import {
   openAIToAnthropic,
   type OpenAIStreamChunk,
 } from './coworkFormatTransform';
-import type { ScheduledTaskStore, ScheduledTaskInput } from '../scheduledTaskStore';
+import type { ScheduledTaskStore, ScheduledTaskInput } from '../domains/scheduled-task/store/scheduledTaskStore';
 import type { Scheduler } from './scheduler';
 
 export type OpenAICompatUpstreamConfig = {

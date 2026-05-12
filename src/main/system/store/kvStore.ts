@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import fs from 'fs';
 import path from 'path';
 import initSqlJs, { Database, SqlJsStatic } from 'sql.js';
-import { DB_FILENAME } from '../../appConstants';
+import { DB_FILENAME } from '../../core/constants';
 
 type ChangePayload<T = unknown> = {
   key: string;
