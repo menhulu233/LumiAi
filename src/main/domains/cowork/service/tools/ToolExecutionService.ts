@@ -339,7 +339,7 @@ export class ToolExecutionService {
     }).join('\n\n');
   }
 
-  private formatMemoryUserEditsResult(input: {
+  formatMemoryUserEditsResult(input: {
     action: 'list' | 'add' | 'update' | 'delete';
     successCount: number;
     failedCount: number;
@@ -389,5 +389,78 @@ export class ToolExecutionService {
       return { ok: false, text: '', reason: 'memory text looks like command/procedural content' };
     }
     return { ok: true, text };
+  }
+
+  hostToolExecutor(payload: Record<string, unknown>): { success: boolean; text: string } {
+    const toolName = String(payload.toolName ?? payload.name ?? '');
+    const rawInput = payload.toolInput ?? payload.input ?? {};
+    const toolInput =
+      rawInput && typeof rawInput === 'object'
+        ? (rawInput as Record<string, unknown>)
+        : {};
+
+    try {
+      if (toolName === 'conversation_search') {
+        const text = this.runConversationSearchTool({
+          query: String(toolInput.query ?? ''),
+          max_results: typeof toolInput.max_results === 'number' ? toolInput.max_results : undefined,
+          before: typeof toolInput.before === 'string' ? toolInput.before : undefined,
+          after: typeof toolInput.after === 'string' ? toolInput.after : undefined,
+        });
+        return { success: true, text };
+      }
+
+      if (toolName === 'recent_chats') {
+        const sortOrder = toolInput.sort_order === 'asc' || toolInput.sort_order === 'desc'
+          ? toolInput.sort_order
+          : undefined;
+        const text = this.runRecentChatsTool({
+          n: typeof toolInput.n === 'number' ? toolInput.n : undefined,
+          sort_order: sortOrder,
+          before: typeof toolInput.before === 'string' ? toolInput.before : undefined,
+          after: typeof toolInput.after === 'string' ? toolInput.after : undefined,
+        });
+        return { success: true, text };
+      }
+
+      if (toolName === 'memory_user_edits') {
+        const action = toolInput.action;
+        if (action !== 'list' && action !== 'add' && action !== 'update' && action !== 'delete') {
+          return {
+            success: false,
+            text: this.formatMemoryUserEditsResult({
+              action: 'list',
+              successCount: 0,
+              failedCount: 1,
+              changedIds: [],
+              reason: 'action is required: list|add|update|delete',
+            }),
+          };
+        }
+        const result = this.runMemoryUserEditsTool({
+          action,
+          id: typeof toolInput.id === 'string' ? toolInput.id : undefined,
+          text: typeof toolInput.text === 'string' ? toolInput.text : undefined,
+          confidence: typeof toolInput.confidence === 'number' ? toolInput.confidence : undefined,
+          status: toolInput.status === 'created' || toolInput.status === 'stale' || toolInput.status === 'deleted'
+            ? toolInput.status
+            : undefined,
+          is_explicit: typeof toolInput.is_explicit === 'boolean' ? toolInput.is_explicit : undefined,
+          limit: typeof toolInput.limit === 'number' ? toolInput.limit : undefined,
+          query: typeof toolInput.query === 'string' ? toolInput.query : undefined,
+        });
+        return {
+          success: !result.isError,
+          text: result.text,
+        };
+      }
+
+      return { success: false, text: `Unsupported host tool: ${toolName || '(empty)'}` };
+    } catch (error) {
+      return {
+        success: false,
+        text: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 }

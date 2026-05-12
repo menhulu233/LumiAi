@@ -314,7 +314,6 @@ export class SandboxExecutionService {
             store: this.deps.store,
             emit: this.deps.emit,
             permissionManager: this.deps.permissionManager,
-            onHostToolExecution: this.deps.hostToolExecutor,
             handleError: this.deps.handleError,
             isSessionStopRequested: this.deps.isSessionStopRequested,
             applyTurnMemoryUpdatesForSession: this.deps.applyTurnMemoryUpdatesForSession,
@@ -840,7 +839,6 @@ export class SandboxExecutionService {
           store: this.deps.store,
           emit: this.deps.emit,
           permissionManager: this.deps.permissionManager,
-          onHostToolExecution: this.deps.hostToolExecutor,
           handleError: this.deps.handleError,
           isSessionStopRequested: this.deps.isSessionStopRequested,
           applyTurnMemoryUpdatesForSession: this.deps.applyTurnMemoryUpdatesForSession,
@@ -1392,8 +1390,8 @@ export class SandboxExecutionService {
         : defaultMaxTimeout;
     const shouldAutoExtend = options?.platform === 'win32' && maxTimeoutMs > timeout;
     const serialActivityWindowMs = 20000;
-    let currentTimeoutMs = timeout;
-    let timeoutExtensionCount = 0;
+    const currentTimeoutMs = timeout;
+    const timeoutExtensionCount = 0;
     let lastSerialActivityAt = 0;
     let lastSerialSize = -1;
     let lastSerialMtimeMs = -1;
