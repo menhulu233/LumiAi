@@ -254,3 +254,57 @@ export function escapeXml(value: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
 }
+
+const CONTENT_TRUNCATED_HINT = '\n...[truncated to prevent memory pressure]';
+
+export function truncateLargeContent(content: string, maxChars: number): string {
+  if (content.length <= maxChars) {
+    return content;
+  }
+  return `${content.slice(0, maxChars)}${CONTENT_TRUNCATED_HINT}`;
+}
+
+export function extractText(value: unknown): string | null {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    const parts = value
+      .map((item) => {
+        if (typeof item === 'string') return item;
+        if (item && typeof item === 'object') {
+          const record = item as Record<string, unknown>;
+          if (typeof record.text === 'string') return record.text;
+        }
+        return '';
+      })
+      .filter(Boolean);
+    return parts.length ? parts.join('') : null;
+  }
+
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    if (typeof record.text === 'string') {
+      return record.text;
+    }
+    if (record.content !== undefined) {
+      return extractText(record.content);
+    }
+  }
+
+  return null;
+}
+
+export function formatToolResultContent(record: Record<string, unknown>, maxChars = 120_000): string {
+  const raw = record.content ?? record;
+  const text = extractText(raw);
+  if (text !== null) {
+    return truncateLargeContent(text, maxChars);
+  }
+  try {
+    return truncateLargeContent(JSON.stringify(raw, null, 2), maxChars);
+  } catch {
+    return truncateLargeContent(String(raw), maxChars);
+  }
+}

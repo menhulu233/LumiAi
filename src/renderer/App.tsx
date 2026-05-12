@@ -587,7 +587,7 @@ const App: React.FC = () => {
         {windowsStandaloneTitleBar}
         <div className="flex-1 flex flex-col items-center justify-center dark:bg-claude-darkBg bg-claude-bg">
           <div className="flex flex-col items-center space-y-6 max-w-md px-6">
-            <div className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-elevated">
               <ChatBubbleLeftRightIcon className="h-8 w-8 text-white" />
             </div>
             <div className="dark:text-claude-darkText text-claude-text text-xl font-medium text-center">{initError}</div>

@@ -2834,8 +2834,8 @@ const Settings: React.FC<SettingsProps> = ({ onClose, initialTab, notice, onUpda
             <span className="text-xs dark:text-claude-darkTextSecondary text-claude-textSecondary mt-1">v{appVersion}</span>
 
             {/* Info Card */}
-            <div className="w-full mt-8 rounded-xl border border-claude-border dark:border-claude-darkBorder overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-claude-border dark:border-claude-darkBorder">
+            <div className="w-full mt-8 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3">
                 <span className="text-sm dark:text-claude-darkText text-claude-text">{i18nService.t('aboutVersion')}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-sm dark:text-claude-darkTextSecondary text-claude-textSecondary">{appVersion}</span>
@@ -2846,7 +2846,7 @@ const Settings: React.FC<SettingsProps> = ({ onClose, initialTab, notice, onUpda
                       e.stopPropagation();
                       void handleCheckUpdate();
                     }}
-                    className="text-xs px-2 py-0.5 rounded-md border border-claude-border dark:border-claude-darkBorder dark:text-claude-darkTextSecondary text-claude-textSecondary hover:text-claude-accent dark:hover:text-claude-accent hover:border-claude-accent dark:hover:border-claude-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-xs px-2 py-0.5 rounded-md dark:text-claude-darkTextSecondary text-claude-textSecondary hover:text-claude-accent dark:hover:text-claude-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {updateCheckStatus === 'checking' && i18nService.t('updateChecking')}
                     {updateCheckStatus === 'upToDate' && i18nService.t('updateUpToDate')}
@@ -2855,7 +2855,7 @@ const Settings: React.FC<SettingsProps> = ({ onClose, initialTab, notice, onUpda
                   </button>
                 </div>
               </div>
-              <div className="flex items-center justify-between px-4 py-3 border-b border-claude-border dark:border-claude-darkBorder">
+              <div className="flex items-center justify-between px-4 py-3">
                 <span className="text-sm dark:text-claude-darkText text-claude-text">{i18nService.t('aboutContactEmail')}</span>
                 <div className="flex items-center gap-2">
                   <button
@@ -2876,7 +2876,7 @@ const Settings: React.FC<SettingsProps> = ({ onClose, initialTab, notice, onUpda
                   )}
                 </div>
               </div>
-              <div className={`flex items-center justify-between px-4 py-3${testModeUnlocked ? ' border-b border-claude-border dark:border-claude-darkBorder' : ''}`}>
+              <div className={`flex items-center justify-between px-4 py-3${testModeUnlocked ? '' : ''}`}>
                 <span className="text-sm dark:text-claude-darkText text-claude-text">{i18nService.t('aboutUserManual')}</span>
                 <button
                   type="button"
@@ -2959,11 +2959,11 @@ const Settings: React.FC<SettingsProps> = ({ onClose, initialTab, notice, onUpda
       onClick={onClose}
     >
       <div
-        className="relative flex w-[900px] h-[80vh] rounded-2xl dark:border-claude-darkBorder border-claude-border border shadow-modal overflow-hidden modal-content"
+        className="relative flex w-[900px] h-[80vh] rounded-2xl shadow-modal overflow-hidden modal-content"
         onClick={handleSettingsClick}
       >
         {/* Left sidebar */}
-        <div className="w-[220px] shrink-0 flex flex-col dark:bg-claude-darkSurfaceMuted bg-claude-surfaceMuted border-r dark:border-claude-darkBorder border-claude-border rounded-l-2xl overflow-y-auto">
+        <div className="w-[220px] shrink-0 flex flex-col dark:bg-claude-darkSurfaceMuted bg-claude-surfaceMuted rounded-l-2xl overflow-y-auto">
           <div className="px-5 pt-5 pb-3">
             <h2 className="text-lg font-semibold dark:text-claude-darkText text-claude-text">{i18nService.t('settings')}</h2>
           </div>
@@ -3027,7 +3027,7 @@ const Settings: React.FC<SettingsProps> = ({ onClose, initialTab, notice, onUpda
             </div>
 
             {/* Footer buttons */}
-            <div className="flex justify-end space-x-4 p-4 dark:border-claude-darkBorder border-claude-border border-t dark:bg-claude-darkBg bg-claude-bg shrink-0">
+            <div className="flex justify-end space-x-4 p-4 dark:bg-claude-darkBg bg-claude-bg shrink-0">
               <button
                 type="button"
                 onClick={onClose}

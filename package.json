@@ -45,7 +45,7 @@
     "fix:mac-icon": "bash scripts/fix-mac-icon-display.sh"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "0.2.12",
+    "@anthropic-ai/claude-agent-sdk": "0.2.112",
     "@electron/remote": "^2.0.12",
     "@grammyjs/runner": "^2.0.0",
     "@headlessui/react": "^1.7.18",

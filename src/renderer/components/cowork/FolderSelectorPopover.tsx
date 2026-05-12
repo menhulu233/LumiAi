@@ -30,7 +30,7 @@ const PathTooltip: React.FC<PathTooltipProps> = ({ path, anchorRect, visible }) 
   return (
     <div
       style={style}
-      className="px-3.5 py-2.5 text-[13px] leading-relaxed rounded-xl shadow-xl dark:bg-claude-darkBg bg-claude-bg dark:text-claude-darkText text-claude-text dark:border-claude-darkBorder border-claude-border border break-all pointer-events-none"
+      className="px-3.5 py-2.5 text-[13px] leading-relaxed rounded-xl shadow-popover dark:bg-claude-darkBg bg-claude-bg dark:text-claude-darkText text-claude-text dark:border-claude-darkBorder border-claude-border border break-all pointer-events-none"
     >
       {path}
     </div>
@@ -197,7 +197,7 @@ const FolderSelectorPopover: React.FC<FolderSelectorPopoverProps> = ({
       {/* Main popover */}
       <div
         ref={popoverRef}
-        className="absolute bottom-full left-0 mb-2 w-56 rounded-lg border dark:border-claude-darkBorder border-claude-border dark:bg-claude-darkSurface bg-claude-surface shadow-lg z-50"
+        className="absolute bottom-full left-0 mb-2 w-56 rounded-lg border dark:border-claude-darkBorder border-claude-border dark:bg-claude-darkSurface bg-claude-surface shadow-popover z-50"
       >
         {/* Add Folder option */}
         <button
@@ -231,7 +231,7 @@ const FolderSelectorPopover: React.FC<FolderSelectorPopoverProps> = ({
       {showRecentSubmenu && (
         <div
           ref={submenuRef}
-          className="fixed w-64 max-h-80 overflow-y-auto rounded-lg border dark:border-claude-darkBorder border-claude-border dark:bg-claude-darkSurface bg-claude-surface shadow-lg z-[60]"
+          className="fixed w-64 max-h-80 overflow-y-auto rounded-lg border dark:border-claude-darkBorder border-claude-border dark:bg-claude-darkSurface bg-claude-surface shadow-popover z-[60]"
           style={{ top: submenuPosition.top, left: submenuPosition.left }}
           onMouseEnter={() => setShowRecentSubmenu(true)}
           onMouseLeave={() => setShowRecentSubmenu(false)}

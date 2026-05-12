@@ -1761,7 +1761,7 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
   return (
     <div ref={detailRootRef} className="flex-1 flex flex-col dark:bg-claude-darkBg bg-claude-bg h-full">
       {/* Header */}
-      <div className="draggable flex h-12 items-center justify-between px-4 border-b dark:border-claude-darkBorder border-claude-border dark:bg-claude-darkSurface/50 bg-claude-surface/50 shrink-0">
+      <div className="draggable flex h-12 items-center justify-between px-4 dark:bg-claude-darkSurface/50 bg-claude-surface/50 shrink-0">
         {/* Left side: Toggle buttons (when collapsed) + Title + Sandbox badge */}
         <div className="flex h-full items-center gap-2 min-w-0">
           {isSidebarCollapsed && (
@@ -1806,12 +1806,12 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
             </h1>
           )}
           {currentSession.executionMode === 'sandbox' && (
-            <span className="inline-flex items-center rounded-full bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+            <span className="inline-flex items-center rounded-full bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide">
               {i18nService.t('coworkSandboxBadge')}
             </span>
           )}
           {currentSession.executionMode === 'local' && (
-            <span className="inline-flex items-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+            <span className="inline-flex items-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide">
               {i18nService.t('coworkLocalBadge')}
             </span>
           )}
@@ -1953,7 +1953,7 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
         {/* Turn Navigation Buttons */}
         {turns.length > 1 && isScrollable && (
           <div
-            className={`absolute right-4 top-1/2 -translate-y-1/2 flex flex-col rounded-lg overflow-hidden shadow-lg transition-opacity duration-300 z-10
+            className={`absolute right-4 top-1/2 -translate-y-1/2 flex flex-col rounded-lg overflow-hidden shadow-elevated transition-opacity duration-300 z-10
               dark:bg-claude-darkSurface/90 bg-claude-surface/90 backdrop-blur-sm
               border dark:border-claude-darkBorder border-claude-border
               ${showTurnNav ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}

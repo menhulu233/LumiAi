@@ -353,7 +353,7 @@ const CoworkView: React.FC<CoworkViewProps> = ({ onRequestAppSettings, onShowSki
   return (
     <div className="flex-1 flex flex-col dark:bg-claude-darkBg bg-claude-bg h-full">
       {/* Header */}
-      <div className="draggable flex h-12 items-center justify-between px-4 border-b dark:border-claude-darkBorder border-claude-border shrink-0">
+      <div className="draggable flex h-12 items-center justify-between px-4 shrink-0">
         <div className="non-draggable h-8 flex items-center">
           {isSidebarCollapsed && (
             <div className={`flex items-center gap-1 mr-2 ${isMac ? 'pl-[68px]' : ''}`}>
@@ -380,20 +380,32 @@ const CoworkView: React.FC<CoworkViewProps> = ({ onRequestAppSettings, onShowSki
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="max-w-3xl mx-auto px-4 py-16 space-y-12">
+      <div className="flex-1 overflow-y-auto min-h-0 flex flex-col justify-center">
+        <div className="max-w-3xl mx-auto w-full px-4 py-8 space-y-6">
           {/* Welcome Section */}
-          <div className="text-center space-y-5">
-            <img src="logo.png" alt="logo" className="w-16 h-16 mx-auto" />
+          <div className="text-center space-y-4">
+            <img src="logo.png" alt="logo" className="w-20 h-20 mx-auto" />
             <h2 className="text-3xl font-bold tracking-tight dark:text-claude-darkText text-claude-text">
               {i18nService.t('coworkWelcome')}
             </h2>
-            <p className="text-sm dark:text-claude-darkTextSecondary text-claude-textSecondary max-w-md mx-auto">
+            <p className="text-base dark:text-claude-darkTextSecondary text-claude-textSecondary max-w-md mx-auto">
               {i18nService.t('coworkDescription')}
             </p>
           </div>
 
-          {/* Prompt Input Area - Large version with folder selector */}
+          {/* Quick Actions */}
+          <div className="space-y-4">
+            {selectedAction ? (
+              <PromptPanel
+                action={selectedAction}
+                onPromptSelect={handleQuickActionPromptSelect}
+              />
+            ) : (
+              <QuickActionBar actions={quickActions} onActionSelect={handleActionSelect} />
+            )}
+          </div>
+
+          {/* Input Area */}
           <div className="space-y-3">
             <div className="shadow-glow-accent rounded-2xl">
               <CoworkPromptInput
@@ -411,18 +423,6 @@ const CoworkView: React.FC<CoworkViewProps> = ({ onRequestAppSettings, onShowSki
                 onManageSkills={() => onShowSkills?.()}
               />
             </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="space-y-4">
-            {selectedAction ? (
-              <PromptPanel
-                action={selectedAction}
-                onPromptSelect={handleQuickActionPromptSelect}
-              />
-            ) : (
-              <QuickActionBar actions={quickActions} onActionSelect={handleActionSelect} />
-            )}
           </div>
         </div>
       </div>

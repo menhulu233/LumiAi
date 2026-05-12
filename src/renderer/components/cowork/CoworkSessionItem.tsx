@@ -298,8 +298,8 @@ const CoworkSessionItem: React.FC<CoworkSessionItemProps> = ({
       }}
       className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-150 ${
         isActive
-          ? 'bg-black/[0.06] dark:bg-white/[0.08]'
-          : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'
+          ? 'bg-claude-surfaceHover dark:bg-claude-darkSurfaceHover'
+          : 'hover:bg-claude-surfaceMuted dark:hover:bg-claude-darkSurfaceMuted'
       }`}
     >
       {/* Content area */}
@@ -356,7 +356,7 @@ const CoworkSessionItem: React.FC<CoworkSessionItemProps> = ({
             <span className="whitespace-nowrap" title={relativeTime.full}>
               {relativeTime.compact}
             </span>
-            <span className="text-[10px] uppercase tracking-wider whitespace-nowrap">
+            <span className="text-xs uppercase tracking-wider whitespace-nowrap">
               {i18nService.t(statusLabels[session.status])}
             </span>
           </div>
@@ -395,7 +395,7 @@ const CoworkSessionItem: React.FC<CoworkSessionItemProps> = ({
       {menuPosition && (
         <div
           ref={menuRef}
-          className="fixed z-50 min-w-[180px] rounded-xl border dark:border-claude-darkBorder border-claude-border dark:bg-claude-darkSurface bg-claude-surface shadow-lg overflow-hidden"
+          className="fixed z-50 min-w-[180px] rounded-xl border dark:border-claude-darkBorder border-claude-border dark:bg-claude-darkSurface bg-claude-surface shadow-popover overflow-hidden"
           style={{ top: menuPosition.y, left: menuPosition.x }}
           role="menu"
         >
@@ -432,7 +432,7 @@ const CoworkSessionItem: React.FC<CoworkSessionItemProps> = ({
           onClick={handleCancelDelete}
         >
           <div
-            className="w-full max-w-sm mx-4 dark:bg-claude-darkSurface bg-claude-surface rounded-2xl shadow-xl overflow-hidden"
+            className="w-full max-w-sm mx-4 dark:bg-claude-darkSurface bg-claude-surface rounded-2xl shadow-modal overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

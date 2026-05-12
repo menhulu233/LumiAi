@@ -10,6 +10,7 @@ import ConnectorIcon from './icons/ConnectorIcon';
 import SearchIcon from './icons/SearchIcon';
 import ClockIcon from './icons/ClockIcon';
 import PuzzleIcon from './icons/PuzzleIcon';
+import Cog6ToothIcon from './icons/Cog6ToothIcon';
 import SidebarToggleIcon from './icons/SidebarToggleIcon';
 import TrashIcon from './icons/TrashIcon';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
@@ -288,7 +289,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             className="w-full inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium dark:text-claude-darkTextSecondary text-claude-textSecondary hover:text-claude-text dark:hover:text-claude-darkText hover:bg-claude-surfaceHover dark:hover:bg-claude-darkSurfaceHover transition-colors"
             aria-label={i18nService.t('settings')}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M14 17H5" /><path d="M19 7h-9" /><circle cx="17" cy="17" r="3" /><circle cx="7" cy="7" r="3" /></svg>
+            <Cog6ToothIcon className="h-4 w-4" />
             {i18nService.t('settings')}
           </button>
         </div>
@@ -300,7 +301,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           onClick={() => setShowBatchDeleteConfirm(false)}
         >
           <div
-            className="w-full max-w-sm mx-4 dark:bg-claude-darkSurface bg-claude-surface rounded-2xl shadow-xl overflow-hidden"
+            className="w-full max-w-sm mx-4 dark:bg-claude-darkSurface bg-claude-surface rounded-2xl shadow-modal overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 px-5 py-4">

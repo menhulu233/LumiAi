@@ -8,41 +8,41 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Cold modern color palette
+        // Manga B&W comic color palette
         claude: {
           // Light mode colors
-          bg: '#F8F9FB',              // Cool gray-white background
-          surface: '#FFFFFF',          // Cards, inputs
-          surfaceHover: '#F0F1F4',     // Hover state
-          surfaceMuted: '#F3F4F6',     // Subtle area distinction
-          surfaceInset: '#EBEDF0',     // Inset areas (e.g., input inner)
-          border: '#E0E2E7',           // Default border
-          borderLight: '#EBEDF0',      // Subtle dividers
-          text: '#1A1D23',             // Primary text, near-black
-          textSecondary: '#6B7280',    // Secondary text
+          bg: '#F5F5F5',               // Off-white page background
+          surface: '#FFFFFF',          // White cards/panels
+          surfaceHover: '#EBEBEB',     // Light grey hover
+          surfaceMuted: '#E5E5E5',     // Muted areas
+          surfaceInset: '#E0E0E0',     // Inset areas
+          border: '#E0E0E0',           // Subtle grey border
+          borderLight: '#EBEBEB',      // Very subtle dividers
+          text: '#0A0A0A',             // Black ink text
+          textSecondary: '#555555',    // Grey halftone text
           // Dark mode colors
-          darkBg: '#0F1117',           // Dark background, near-black
-          darkSurface: '#1A1D27',      // Dark cards
-          darkSurfaceHover: '#242830', // Dark hover
-          darkSurfaceMuted: '#151820', // Subtle dark area
-          darkSurfaceInset: '#0C0E14', // Dark inset areas
-          darkBorder: '#2A2E38',       // Dark borders
-          darkBorderLight: '#1F232B',  // Subtle dark dividers
-          darkText: '#E4E5E9',         // Dark primary text
-          darkTextSecondary: '#8B8FA3', // Dark secondary text
-          // Accent (tech blue)
-          accent: '#3B82F6',           // Blue primary
-          accentHover: '#2563EB',      // Blue hover
-          accentLight: '#60A5FA',      // Light blue for badges
-          accentMuted: 'rgba(59,130,246,0.10)', // Very faint blue background
+          darkBg: '#0A0A0A',           // Black page background
+          darkSurface: '#1A1A1A',      // Dark grey panels
+          darkSurfaceHover: '#2A2A2A', // Dark hover
+          darkSurfaceMuted: '#151515', // Subtle dark area
+          darkSurfaceInset: '#0D0D0D', // Dark inset areas
+          darkBorder: '#2A2A2A',       // Subtle dark grey border
+          darkBorderLight: '#1A1A1A',  // Very subtle dark dividers
+          darkText: '#FFFFFF',         // White ink text
+          darkTextSecondary: '#999999', // Light grey halftone
+          // Accent (manga red)
+          accent: '#FF3333',           // Comic red primary
+          accentHover: '#CC0000',      // Deep red hover
+          accentLight: '#FF6666',      // Light red for badges
+          accentMuted: 'rgba(255,51,51,0.12)', // Very faint red background
         },
         primary: {
-          DEFAULT: '#3B82F6',
-          dark: '#2563EB'
+          DEFAULT: '#FF3333',
+          dark: '#CC0000'
         },
         secondary: {
-          DEFAULT: '#6B7280',
-          dark: '#2A2E38'
+          DEFAULT: '#555555',
+          dark: '#333333'
         }
       },
       boxShadow: {
@@ -51,7 +51,7 @@ export default {
         elevated: '0 4px 12px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.04)',
         modal: '0 8px 30px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08)',
         popover: '0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.05)',
-        'glow-accent': '0 0 20px rgba(59,130,246,0.15)',
+        'glow-accent': '0 0 20px rgba(255,51,51,0.20)',
       },
       keyframes: {
         'fade-in': {
@@ -82,24 +82,33 @@ export default {
         'scale-in': 'scale-in 0.2s ease-out',
         shimmer: 'shimmer 1.5s infinite',
       },
+      borderRadius: {
+        none: '0px',
+        sm: '2px',
+        DEFAULT: '4px',
+        md: '4px',
+        lg: '8px',
+        xl: '8px',
+        '2xl': '8px',
+        '3xl': '8px',
+      },
       transitionTimingFunction: {
         smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
       typography: {
         DEFAULT: {
           css: {
-            color: '#1A1D23',
+            color: '#0A0A0A',
             a: {
-              color: '#3B82F6',
+              color: '#FF3333',
               '&:hover': {
-                color: '#2563EB',
+                color: '#CC0000',
               },
             },
             code: {
-              color: '#1A1D23',
-              backgroundColor: 'rgba(224, 226, 231, 0.5)',
+              color: '#0A0A0A',
+              backgroundColor: 'rgba(26, 26, 26, 0.08)',
               padding: '0.2em 0.4em',
-              borderRadius: '0.25rem',
               fontWeight: '400',
             },
             'code::before': {
@@ -109,74 +118,71 @@ export default {
               content: '""',
             },
             pre: {
-              backgroundColor: '#F0F1F4',
-              color: '#1A1D23',
+              backgroundColor: '#EBEBEB',
+              color: '#0A0A0A',
               padding: '1em',
-              borderRadius: '0.75rem',
               overflowX: 'auto',
             },
             blockquote: {
-              borderLeftColor: '#3B82F6',
-              color: '#6B7280',
+              borderLeftColor: '#FF3333',
+              color: '#555555',
             },
             h1: {
-              color: '#1A1D23',
+              color: '#0A0A0A',
             },
             h2: {
-              color: '#1A1D23',
+              color: '#0A0A0A',
             },
             h3: {
-              color: '#1A1D23',
+              color: '#0A0A0A',
             },
             h4: {
-              color: '#1A1D23',
+              color: '#0A0A0A',
             },
             strong: {
-              color: '#1A1D23',
+              color: '#0A0A0A',
             },
           },
         },
         dark: {
           css: {
-            color: '#E4E5E9',
+            color: '#FFFFFF',
             a: {
-              color: '#60A5FA',
+              color: '#FF6666',
               '&:hover': {
-                color: '#93BBFD',
+                color: '#FF9999',
               },
             },
             code: {
-              color: '#E4E5E9',
-              backgroundColor: 'rgba(42, 46, 56, 0.5)',
+              color: '#FFFFFF',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
               padding: '0.2em 0.4em',
-              borderRadius: '0.25rem',
               fontWeight: '400',
             },
             pre: {
-              backgroundColor: '#1A1D27',
-              color: '#E4E5E9',
+              backgroundColor: '#1A1A1A',
+              color: '#FFFFFF',
               padding: '1em',
-              borderRadius: '0.75rem',
               overflowX: 'auto',
             },
             blockquote: {
-              borderLeftColor: '#3B82F6',
-              color: '#8B8FA3',
+              borderLeftColor: '#FF3333',
+              color: '#999999',
             },
             h1: {
-              color: '#E4E5E9',
+              color: '#FFFFFF',
             },
             h2: {
-              color: '#E4E5E9',
+              color: '#FFFFFF',
             },
             h3: {
-              color: '#E4E5E9',
+              color: '#FFFFFF',
             },
             h4: {
-              color: '#E4E5E9',
+              color: '#FFFFFF',
             },
             strong: {
-              color: '#E4E5E9',
+              color: '#FFFFFF',
             },
           },
         },

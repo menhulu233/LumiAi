@@ -15,13 +15,12 @@
 }
 
 .dark .katex {
-  color: #E4E5E9;
+  color: #FFFFFF;
 }
 
 /* Improve code block styles */
 pre {
   @apply dark:bg-claude-darkSurface bg-claude-surfaceHover;
-  border-radius: 0.75rem !important;
   padding: 1em !important;
   margin: 1em 0 !important;
   overflow-x: auto !important;
@@ -73,33 +72,33 @@ blockquote {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Cold modern dark mode */
+/* Manga B&W comic dark mode */
 .dark {
   color-scheme: dark;
-  color: #E4E5E9;
-  background-color: #0F1117;
+  color: #FFFFFF;
+  background-color: #0A0A0A;
 }
 
-/* Cold modern light mode */
+/* Manga B&W comic light mode */
 .light {
   color-scheme: light;
-  color: #1A1D23;
-  background-color: #F8F9FB;
+  color: #0A0A0A;
+  background-color: #F5F5F5;
 }
 
 /* Ensure all containers inherit theme */
 .dark #root,
 .dark .App,
 .dark main {
-  background-color: #0F1117;
-  color: #E4E5E9;
+  background-color: #0A0A0A;
+  color: #FFFFFF;
 }
 
 .light #root,
 .light .App,
 .light main {
-  background-color: #F8F9FB;
-  color: #1A1D23;
+  background-color: #F5F5F5;
+  color: #0A0A0A;
 }
 
 body {
@@ -132,13 +131,13 @@ body {
 
 /* Style for select options to match theme */
 .dark option {
-  background-color: #1A1D27;
-  color: #E4E5E9;
+  background-color: #1A1A1A;
+  color: #FFFFFF;
 }
 
 .light option {
   background-color: #FFFFFF;
-  color: #1A1D23;
+  color: #0A0A0A;
 }
 
 /* Ensure select elements have proper styling in Firefox */
@@ -173,6 +172,36 @@ select::-ms-expand {
 /* Focus ring */
 .focus-ring {
   @apply focus:outline-none focus:ring-2 focus:ring-claude-accent focus:ring-offset-2 dark:focus:ring-offset-claude-darkBg focus:ring-offset-claude-bg;
+}
+
+/* Streaming activity bar */
+.streaming-bar {
+  position: relative;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 1px;
+  background: rgba(255,51,51,0.15);
+}
+.streaming-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%;
+  border-radius: 1px;
+  background: linear-gradient(90deg, rgba(255,51,51,0.3) 0%, rgba(255,51,51,0.8) 50%, rgba(255,51,51,0.3) 100%);
+  animation: streaming-slide 1.5s ease-in-out infinite;
+}
+.dark .streaming-bar {
+  background: rgba(255,51,51,0.2);
+}
+.dark .streaming-bar::before {
+  box-shadow: 0 0 6px rgba(255,51,51,0.4);
+}
+@keyframes streaming-slide {
+  0% { left: -40%; }
+  100% { left: 100%; }
 }
 
 /* Button styles */
@@ -226,32 +255,3 @@ select::-ms-expand {
   animation: shimmer 1.5s infinite;
 }
 
-/* Streaming activity bar */
-.streaming-bar {
-  position: relative;
-  height: 2px;
-  overflow: hidden;
-  border-radius: 1px;
-  background: rgba(59,130,246,0.1);
-}
-.streaming-bar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 40%;
-  border-radius: 1px;
-  background: linear-gradient(90deg, rgba(59,130,246,0.3) 0%, rgba(59,130,246,0.8) 50%, rgba(59,130,246,0.3) 100%);
-  animation: streaming-slide 1.5s ease-in-out infinite;
-}
-.dark .streaming-bar {
-  background: rgba(59,130,246,0.15);
-}
-.dark .streaming-bar::before {
-  box-shadow: 0 0 6px rgba(59,130,246,0.4);
-}
-@keyframes streaming-slide {
-  0% { left: -40%; }
-  100% { left: 100%; }
-}

@@ -138,7 +138,7 @@ const Tooltip: React.FC<TooltipProps> = ({
       {isVisible && content && (
         <div
           ref={tooltipRef}
-          className={`absolute z-[100] px-3.5 py-2.5 text-[13px] leading-relaxed rounded-xl shadow-xl
+          className={`absolute z-[100] px-3.5 py-2.5 text-[13px] leading-relaxed rounded-xl shadow-popover
             dark:bg-claude-darkBg bg-claude-bg
             dark:text-claude-darkText text-claude-text
             dark:border-claude-darkBorder border-claude-border border`}
