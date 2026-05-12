@@ -8,7 +8,7 @@ import fs from 'fs';
 import { app } from 'electron';
 import { cpRecursiveSync } from '../../../utils/fsCompat';
 import { getElectronNodeRuntimePath } from '../../../libs/coworkUtil';
-import { appendPythonRuntimeToEnv } from '../../../libs/pythonRuntime';
+import { appendPythonRuntimeToEnv } from './pythonRuntime';
 
 /**
  * Resolve the user's login shell PATH on macOS/Linux.

@@ -12,7 +12,7 @@ import { getClaudeCodePath, getCurrentApiConfig } from './claudeSettings';
 import { loadClaudeSdk } from './claudeSdk';
 import { getElectronNodeRuntimePath, getEnhancedEnv, getEnhancedEnvWithTmpdir, getSkillsRoot } from './coworkUtil';
 import { coworkLog, getCoworkLogPath } from './coworkLogger';
-import { ensurePythonPipReady, ensurePythonRuntimeReady } from './pythonRuntime';
+import { ensurePythonPipReady, ensurePythonRuntimeReady } from '../domains/skill/service/pythonRuntime';
 import { cpRecursiveSync } from '../utils/fsCompat';
 import { isQuestionLikeMemoryText, type CoworkMemoryGuardLevel } from './coworkMemoryExtractor';
 import { z } from 'zod';

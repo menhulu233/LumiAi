@@ -22,7 +22,7 @@ import { startCoworkOpenAICompatProxy, setScheduledTaskDeps } from '../libs/cowo
 import { getSkillServiceManager } from '../domains/skill/service/skillServiceManager';
 import { isAutoLaunched, setAutoLaunchEnabled } from '../system/service/autoLaunchService';
 import { createTray, updateTrayMenu } from '../system/service/trayService';
-import { ensurePythonRuntimeReady } from '../libs/pythonRuntime';
+import { ensurePythonRuntimeReady } from '../domains/skill/service/pythonRuntime';
 import { applyProxyPreference } from '../system/service/proxyService';
 import { setContainer } from './container';
 import { registerIPCHandlers } from '../ipc/router';

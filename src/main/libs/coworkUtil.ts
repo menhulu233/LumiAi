@@ -6,7 +6,7 @@ import { buildEnvForConfig, getCurrentApiConfig, resolveCurrentApiConfig } from 
 import type { OpenAICompatProxyTarget } from './coworkOpenAICompatProxy';
 import { getInternalApiBaseURL } from './coworkOpenAICompatProxy';
 import { coworkLog } from './coworkLogger';
-import { appendPythonRuntimeToEnv } from './pythonRuntime';
+import { appendPythonRuntimeToEnv } from '../domains/skill/service/pythonRuntime';
 import { isSystemProxyEnabled, resolveSystemProxyUrl } from '../system/service/systemProxy';
 
 function appendEnvPath(current: string | undefined, additions: string[]): string | undefined {

@@ -5,7 +5,7 @@ import type { SkillManager } from '../domains/skill/skillManager';
 import type { McpStore } from '../domains/mcp/store/mcpStore';
 import type { IMGatewayManager } from '../domains/im/service/imGatewayManager';
 import type { ScheduledTaskStore } from '../domains/scheduled-task/store/scheduledTaskStore';
-import type { Scheduler } from '../libs/scheduler';
+import type { Scheduler } from '../domains/scheduled-task/service/scheduler';
 
 export interface Container {
   store: KvStore;

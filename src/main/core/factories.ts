@@ -6,7 +6,7 @@ import { SkillManager } from '../domains/skill/skillManager';
 import { McpStore } from '../domains/mcp/store/mcpStore';
 import { IMGatewayManager } from '../domains/im/service/imGatewayManager';
 import { ScheduledTaskStore } from '../domains/scheduled-task/store/scheduledTaskStore';
-import { Scheduler } from '../libs/scheduler';
+import { Scheduler } from '../domains/scheduled-task/service/scheduler';
 import { broadcastToAllWindows } from './broadcaster';
 import { coworkMigrations } from '../domains/cowork/store/_migrations';
 import { memoryMigrations } from '../domains/cowork/store/_memoryMigrations';

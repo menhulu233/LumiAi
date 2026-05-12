@@ -9,7 +9,7 @@ import {
   type OpenAIStreamChunk,
 } from './coworkFormatTransform';
 import type { ScheduledTaskStore, ScheduledTaskInput } from '../domains/scheduled-task/store/scheduledTaskStore';
-import type { Scheduler } from './scheduler';
+import type { Scheduler } from '../domains/scheduled-task/service/scheduler';
 
 export type OpenAICompatUpstreamConfig = {
   baseURL: string;

@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import extractZip from 'extract-zip';
 import { getElectronNodeRuntimePath } from '../../../libs/coworkUtil';
-import { appendPythonRuntimeToEnv } from '../../../libs/pythonRuntime';
+import { appendPythonRuntimeToEnv } from './pythonRuntime';
 import { SkillRegistryStore, cleanupPathSafely, normalizeFolderName, resolveWithin, isZipFile, compareVersions, SKILLS_DIR_NAME, SKILL_FILE_NAME } from '../store/registryStore';
 import { SkillRunnerService, runScriptWithTimeout } from './runnerService';
 import {
