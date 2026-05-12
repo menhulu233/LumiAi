@@ -11,8 +11,8 @@ export class SkillManager {
   private builder: SkillBuilderService;
   private watcher: SkillWatcherService;
 
-  constructor(getStore: () => KvStore) {
-    this.registry = new SkillRegistryStore(getStore);
+  constructor(store: KvStore) {
+    this.registry = new SkillRegistryStore(store);
     this.config = new SkillConfigStore(this.registry);
     this.builder = new SkillBuilderService(this.registry);
     this.watcher = new SkillWatcherService();

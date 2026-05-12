@@ -1,12 +1,7 @@
 import { app } from 'electron';
 import { destroyTray } from '../system/service/trayService';
 import { getSkillServiceManager } from '../domains/skill/service/skillServiceManager';
-import {
-  getCoworkRunner,
-  getIMGatewayManager,
-  getScheduler,
-  getSkillManager,
-} from './factories';
+import { getContainer } from './container';
 import { stopCoworkOpenAICompatProxy } from '../domains/cowork/service/coworkOpenAICompatProxy';
 import { setIsQuitting } from './window';
 
@@ -20,13 +15,14 @@ export function getCleanupState(): { finished: boolean; inProgress: boolean } {
 export const runAppCleanup = async (): Promise<void> => {
   console.log('[Main] App is quitting, starting cleanup...');
   destroyTray();
-  const manager = getSkillManager();
-  manager?.stopWatching();
 
-  const runner = getCoworkRunner();
-  if (runner) {
+  const container = getContainer();
+
+  container.skillManager?.stopWatching();
+
+  if (container.coworkRunner) {
     console.log('[Main] Stopping cowork sessions...');
-    runner.stopAllSessions();
+    container.coworkRunner.stopAllSessions();
   }
 
   await stopCoworkOpenAICompatProxy().catch((error) => {
@@ -36,16 +32,14 @@ export const runAppCleanup = async (): Promise<void> => {
   const skillServices = getSkillServiceManager();
   await skillServices.stopAll();
 
-  const imManager = getIMGatewayManager();
-  if (imManager) {
-    await imManager.stopAll().catch(err => {
+  if (container.imGatewayManager) {
+    await container.imGatewayManager.stopAll().catch(err => {
       console.error('[IM Gateway] Error stopping gateways on quit:', err);
     });
   }
 
-  const sched = getScheduler();
-  if (sched) {
-    sched.stop();
+  if (container.scheduler) {
+    container.scheduler.stop();
   }
 };
 

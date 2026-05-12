@@ -4,16 +4,8 @@ import fs from 'fs';
 import os from 'os';
 import {
   initStore,
+  createContainer,
   getStore,
-  getCoworkStore,
-  getCoworkRunner,
-  getSkillManager,
-  getMcpStore,
-  getIMGatewayManager,
-  wireIMGatewayManager,
-  getScheduledTaskStore,
-  getScheduler,
-  setStoreInstance,
   AppConfigSettings,
   getUseSystemProxyFromConfig,
 } from './factories';
@@ -24,7 +16,6 @@ import { isAutoLaunched, setAutoLaunchEnabled } from '../system/service/autoLaun
 import { createTray, updateTrayMenu } from '../system/service/trayService';
 import { ensurePythonRuntimeReady } from '../domains/skill/service/pythonRuntime';
 import { applyProxyPreference } from '../system/service/proxyService';
-import { setContainer } from './container';
 import { registerIPCHandlers } from '../ipc/router';
 import { setContentSecurityPolicy } from './csp';
 import { createWindow, getMainWindow, updateTitleBarOverlay } from './window';
@@ -44,7 +35,6 @@ export async function bootstrap(): Promise<void> {
 
   console.log('[Main] initApp: starting initStore()');
   const store = await initStore();
-  setStoreInstance(store);
   console.log('[Main] initApp: store initialized');
 
   try {
@@ -55,7 +45,11 @@ export async function bootstrap(): Promise<void> {
     console.warn('[Main] initApp: legacy migrations failed:', error);
   }
 
-  const resetCount = getCoworkStore().resetRunningSessions();
+  console.log('[Main] initApp: assembling container');
+  const container = createContainer(store);
+  console.log('[Main] initApp: container assembled');
+
+  const resetCount = container.coworkStore.resetRunningSessions();
   console.log('[Main] initApp: resetRunningSessions done, count:', resetCount);
   if (resetCount > 0) {
     console.log(`[Main] Reset ${resetCount} stuck cowork session(s) from running -> idle`);
@@ -63,8 +57,9 @@ export async function bootstrap(): Promise<void> {
 
   setStoreGetter(() => store);
   console.log('[Main] initApp: setStoreGetter done');
-  const manager = getSkillManager();
-  console.log('[Main] initApp: getSkillManager done');
+
+  const manager = container.skillManager;
+  console.log('[Main] initApp: skillManager ready');
 
   try {
     manager.syncBundledSkillsToUserData();
@@ -107,20 +102,12 @@ export async function bootstrap(): Promise<void> {
     console.error('Failed to start OpenAI compatibility proxy:', error);
   });
 
-  setScheduledTaskDeps({ getScheduledTaskStore, getScheduler });
+  setScheduledTaskDeps({
+    getScheduledTaskStore: () => container.scheduledTaskStore,
+    getScheduler: () => container.scheduler,
+  });
 
-  const containerDeps = {
-    store: getStore(),
-    coworkStore: getCoworkStore(),
-    coworkRunner: getCoworkRunner(),
-    skillManager: getSkillManager(),
-    mcpStore: getMcpStore(),
-    imGatewayManager: getIMGatewayManager(),
-    scheduledTaskStore: getScheduledTaskStore(),
-    scheduler: getScheduler(),
-  };
-  setContainer(containerDeps);
-  registerIPCHandlers(containerDeps);
+  registerIPCHandlers(container);
 
   setContentSecurityPolicy();
 
@@ -133,14 +120,12 @@ export async function bootstrap(): Promise<void> {
         win?.show();
       }
       createTray(() => getMainWindow(), getStore());
-      getScheduler().start();
+      container.scheduler.start();
     }
   );
   console.log('[Main] initApp: window created');
 
-  wireIMGatewayManager(containerDeps.imGatewayManager);
-
-  containerDeps.imGatewayManager.startAllEnabled().catch((error) => {
+  container.imGatewayManager.startAllEnabled().catch((error) => {
     console.error('[IM] Failed to auto-start enabled gateways:', error);
   });
 
@@ -186,7 +171,7 @@ export async function bootstrap(): Promise<void> {
             w?.show();
           }
           createTray(() => getMainWindow(), getStore());
-          getScheduler().start();
+          container.scheduler.start();
         }
       );
     }

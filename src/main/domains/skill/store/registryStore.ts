@@ -196,7 +196,7 @@ export const collectSkillDirsRecursively = (root: string): string[] => {
 };
 
 export class SkillRegistryStore {
-  constructor(private getStore: () => KvStore) {}
+  constructor(private store: KvStore) {}
 
   getSkillsRoot(): string {
     return path.resolve(app.getPath('userData'), SKILLS_DIR_NAME);
@@ -453,7 +453,7 @@ export class SkillRegistryStore {
   }
 
   loadSkillStateMap(): SkillStateMap {
-    const store = this.getStore();
+    const store = this.store;
     const raw = store.get(SKILL_STATE_KEY) as SkillStateMap | SkillRecord[] | undefined;
     if (Array.isArray(raw)) {
       const migrated: SkillStateMap = {};
@@ -467,7 +467,7 @@ export class SkillRegistryStore {
   }
 
   saveSkillStateMap(map: SkillStateMap): void {
-    this.getStore().set(SKILL_STATE_KEY, map);
+    this.store.set(SKILL_STATE_KEY, map);
   }
 
   loadSkillsDefaults(roots: string[]): Record<string, SkillDefaultConfig> {
