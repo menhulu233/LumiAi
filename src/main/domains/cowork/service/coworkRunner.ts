@@ -66,6 +66,7 @@ import {
   escapeXml,
 } from './coworkRunnerHelpers';
 import { ToolExecutionService } from './tools/ToolExecutionService';
+import { SandboxExecutionService } from './execution/SandboxExecutionService';
 
 export * from './CoworkRunnerTypes';
 
@@ -319,6 +320,7 @@ export class CoworkRunner extends EventEmitter {
   }>;
   private toolExecution: ToolExecutionService;
   private workspace: WorkspaceService;
+  private sandboxExecution: SandboxExecutionService;
 
   constructor(store: CoworkStore) {
     super();
@@ -328,6 +330,20 @@ export class CoworkRunner extends EventEmitter {
     });
     this.toolExecution = new ToolExecutionService(this.store);
     this.workspace = new WorkspaceService(this.store);
+    this.sandboxExecution = new SandboxExecutionService({
+      store: this.store,
+      emit: this.emit.bind(this),
+      permissionManager: this.permissionManager,
+      handleError: this.handleError.bind(this),
+      isSessionStopRequested: this.isSessionStopRequested.bind(this),
+      applyTurnMemoryUpdatesForSession: this.applyTurnMemoryUpdatesForSession.bind(this),
+      hostToolExecutor: this.handleHostToolExecution.bind(this),
+      sanitizeToolPayload: this.sanitizeToolPayload.bind(this),
+      clearSandboxPermissions: this.clearSandboxPermissions.bind(this),
+      clearPendingPermissions: this.clearPendingPermissions.bind(this),
+      addSystemMessage: this.addSystemMessage.bind(this),
+      permissionManagerGetConfig: () => this.store.getConfig(),
+    });
   }
 
   setMcpServerProvider(provider: () => Array<{
@@ -390,10 +406,7 @@ export class CoworkRunner extends EventEmitter {
   }
 
   private getSandboxUnavailableFallbackNotice(errorMessage: string): string {
-    if (this.store.getAppLanguage() === 'en') {
-      return `Sandbox VM is unavailable. Falling back to local execution. (${errorMessage})`;
-    }
-    return `沙箱 VM 当前不可用，已回退为本地执行。（${errorMessage}）`;
+    return this.sandboxExecution.getSandboxUnavailableFallbackNotice(errorMessage);
   }
 
   private async drainTurnMemoryQueue(): Promise<void> {
