@@ -24,6 +24,7 @@ import PencilSquareIcon from '../icons/PencilSquareIcon';
 import TrashIcon from '../icons/TrashIcon';
 import WindowTitleBar from '../window/WindowTitleBar';
 import { getCompactFolderName } from '../../utils/path';
+import TypingDots from './components/TypingDots';
 
 interface CoworkSessionDetailProps {
   onManageSkills?: () => void;
@@ -970,14 +971,6 @@ const StreamingActivityBar: React.FC<{ messages: CoworkMessage[] }> = ({ message
     </div>
   );
 };
-
-const TypingDots: React.FC = () => (
-  <div className="flex items-center space-x-1.5 py-1">
-    <div className="w-2 h-2 rounded-full bg-claude-accent animate-bounce" style={{ animationDelay: '0ms' }} />
-    <div className="w-2 h-2 rounded-full bg-claude-accent animate-bounce" style={{ animationDelay: '150ms' }} />
-    <div className="w-2 h-2 rounded-full bg-claude-accent animate-bounce" style={{ animationDelay: '300ms' }} />
-  </div>
-);
 
 const ThinkingBlock: React.FC<{
   message: CoworkMessage;
