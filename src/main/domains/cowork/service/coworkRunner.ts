@@ -36,6 +36,7 @@ import {
 } from './coworkRunnerStream';
 import { PermissionManager } from './coworkRunnerPermission';
 import { WorkspaceService } from './workspace/WorkspaceService';
+import { PromptBuilderService } from './prompt/PromptBuilderService';
 import {
   injectSandboxHistoryPrompt,
   injectLocalHistoryPrompt,
@@ -291,6 +292,7 @@ export class CoworkRunner extends EventEmitter {
   private sandboxExecution: SandboxExecutionService;
   private localExecution: LocalExecutionService;
   private sessionService: CoworkSessionService;
+  private promptBuilder: PromptBuilderService;
 
   constructor(store: CoworkStore) {
     super();
@@ -301,6 +303,7 @@ export class CoworkRunner extends EventEmitter {
     this.toolExecution = new ToolExecutionService(this.store);
     this.workspace = new WorkspaceService(this.store);
     this.sessionService = new CoworkSessionService(this.store);
+    this.promptBuilder = new PromptBuilderService(this.store);
     this.sandboxExecution = new SandboxExecutionService({
       store: this.store,
       emit: this.emit.bind(this),
@@ -921,38 +924,7 @@ export class CoworkRunner extends EventEmitter {
     prompt: string;
     unresolved: string[];
   } {
-    const lines = prompt.split(/\r?\n/);
-    const entries = this.parseAttachmentEntries(prompt);
-    if (entries.length === 0) {
-      return { prompt, unresolved: [] };
-    }
-
-    const unresolved: string[] = [];
-    for (let i = 0; i < entries.length; i += 1) {
-      const entry = entries[i];
-      const resolvedPath = this.resolveAttachmentPath(entry.rawPath, cwd);
-      const relative = path.relative(cwd, resolvedPath);
-      const isOutside = relative.startsWith('..') || path.isAbsolute(relative);
-
-      let sandboxPath: string | null;
-      if (isOutside) {
-        sandboxPath = this.stageExternalAttachment(cwd, resolvedPath, sessionId, i);
-      } else {
-        sandboxPath = this.toWorkspaceRelativePromptPath(cwd, resolvedPath);
-      }
-
-      if (!sandboxPath) {
-        unresolved.push(entry.rawPath);
-        continue;
-      }
-
-      lines[entry.lineIndex] = `${entry.label}: ${sandboxPath}`;
-    }
-
-    return {
-      prompt: lines.join('\n'),
-      unresolved,
-    };
+    return this.promptBuilder.preparePromptForSandbox(prompt, cwd, sessionId);
   }
 
   private findWorkspaceFileByName(cwd: string, fileName: string, maxMatches = 2): string[] {
@@ -1044,34 +1016,12 @@ export class CoworkRunner extends EventEmitter {
   }
 
   private augmentPromptWithReferencedWorkspaceFiles(prompt: string, cwd: string): string {
-    const existingAttachmentPaths = new Set<string>();
-    for (const entry of this.parseAttachmentEntries(prompt)) {
-      existingAttachmentPaths.add(this.resolveAttachmentPath(entry.rawPath, cwd));
-    }
-
-    const inferred = this.inferReferencedWorkspaceFiles(prompt, cwd);
-    const linesToAppend: string[] = [];
-    for (const filePath of inferred) {
-      if (existingAttachmentPaths.has(filePath)) {
-        continue;
-      }
-      linesToAppend.push(`输入文件: ${this.toWorkspaceRelativePromptPath(cwd, filePath)}`);
-    }
-
-    if (linesToAppend.length === 0) {
-      return prompt;
-    }
-
-    const separator = prompt.trimEnd().length > 0 ? '\n\n' : '';
-    return `${prompt.trimEnd()}${separator}${linesToAppend.join('\n')}`;
+    return this.promptBuilder.augmentPromptWithReferencedWorkspaceFiles(prompt, cwd);
   }
 
 
   private truncateLargeContent(content: string, maxChars: number): string {
-    if (content.length <= maxChars) {
-      return content;
-    }
-    return `${content.slice(0, maxChars)}${CONTENT_TRUNCATED_HINT}`;
+    return this.promptBuilder.truncateLargeContent(content, maxChars);
   }
 
   private sanitizeToolPayload(
