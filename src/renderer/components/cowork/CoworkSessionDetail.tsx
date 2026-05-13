@@ -24,6 +24,7 @@ import { getCompactFolderName } from '../../utils/path';
 import TypingDots from './components/TypingDots';
 import UserMessageItem from './components/UserMessageItem';
 import CopyButton from './components/CopyButton';
+import ExportOptionsModal from './modals/ExportOptionsModal';
 
 interface CoworkSessionDetailProps {
   onManageSkills?: () => void;
@@ -40,42 +41,6 @@ const AUTO_SCROLL_THRESHOLD = 120;
 const NAV_HIDE_DELAY = 3000;
 const NAV_SCROLL_LOCK_DURATION = 500;
 const NAV_BOTTOM_SNAP_THRESHOLD = 20;
-const INVALID_FILE_NAME_PATTERN = /[<>:"/\\|?*\u0000-\u001F]/g;
-
-const sanitizeExportFileName = (value: string): string => {
-  const sanitized = value.replace(INVALID_FILE_NAME_PATTERN, ' ').replace(/\s+/g, ' ').trim();
-  return sanitized || 'cowork-session';
-};
-
-const formatExportTimestamp = (value: Date): string => {
-  const pad = (num: number): string => String(num).padStart(2, '0');
-  return `${value.getFullYear()}${pad(value.getMonth() + 1)}${pad(value.getDate())}-${pad(value.getHours())}${pad(value.getMinutes())}${pad(value.getSeconds())}`;
-};
-
-type CaptureRect = { x: number; y: number; width: number; height: number };
-
-const MAX_EXPORT_CANVAS_HEIGHT = 32760;
-const MAX_EXPORT_SEGMENTS = 240;
-
-const waitForNextFrame = (): Promise<void> =>
-  new Promise((resolve) => {
-    window.requestAnimationFrame(() => resolve());
-  });
-
-const loadImageFromBase64 = (pngBase64: string): Promise<HTMLImageElement> =>
-  new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Failed to decode captured image'));
-    img.src = `data:image/png;base64,${pngBase64}`;
-  });
-
-const domRectToCaptureRect = (rect: DOMRect): CaptureRect => ({
-  x: Math.max(0, Math.round(rect.x)),
-  y: Math.max(0, Math.round(rect.y)),
-  width: Math.max(0, Math.round(rect.width)),
-  height: Math.max(0, Math.round(rect.height)),
-});
 
 // PushPinIcon component for pin/unpin functionality
 const PushPinIcon: React.FC<React.SVGProps<SVGSVGElement> & { slashed?: boolean }> = ({
@@ -1221,158 +1186,8 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
     if (!currentSession || isExportingImage) return;
     closeMenu();
     setIsExportingImage(true);
-
-    window.requestAnimationFrame(() => {
-      void (async () => {
-        try {
-          const scrollContainer = scrollContainerRef.current;
-          if (!scrollContainer) {
-            throw new Error('Capture target not found');
-          }
-          const initialScrollTop = scrollContainer.scrollTop;
-          try {
-            const scrollRect = domRectToCaptureRect(scrollContainer.getBoundingClientRect());
-            if (scrollRect.width <= 0 || scrollRect.height <= 0) {
-              throw new Error('Invalid capture area');
-            }
-
-            const scrollContentHeight = Math.max(scrollContainer.scrollHeight, scrollContainer.clientHeight);
-            if (scrollContentHeight <= 0) {
-              throw new Error('Invalid content height');
-            }
-
-            const toContentY = (viewportY: number): number => {
-              const y = scrollContainer.scrollTop + (viewportY - scrollRect.y);
-              return Math.max(0, Math.min(scrollContentHeight, y));
-            };
-
-            const userAnchors = scrollContainer.querySelectorAll<HTMLElement>('[data-export-role="user-message"]');
-            const assistantAnchors = scrollContainer.querySelectorAll<HTMLElement>('[data-export-role="assistant-block"]');
-
-            let contentStart = 0;
-            let contentEnd = scrollContentHeight;
-
-            if (userAnchors.length > 0) {
-              contentStart = toContentY(userAnchors[0].getBoundingClientRect().top);
-            } else if (assistantAnchors.length > 0) {
-              contentStart = toContentY(assistantAnchors[0].getBoundingClientRect().top);
-            }
-
-            if (assistantAnchors.length > 0) {
-              const lastAssistant = assistantAnchors[assistantAnchors.length - 1];
-              contentEnd = toContentY(lastAssistant.getBoundingClientRect().bottom);
-            } else if (userAnchors.length > 0) {
-              const lastUser = userAnchors[userAnchors.length - 1];
-              contentEnd = toContentY(lastUser.getBoundingClientRect().bottom);
-            }
-
-            const maxStart = Math.max(0, scrollContentHeight - 1);
-            contentStart = Math.max(0, Math.min(maxStart, Math.round(contentStart)));
-            contentEnd = Math.max(contentStart + 1, Math.min(scrollContentHeight, Math.round(contentEnd)));
-
-            const outputHeight = contentEnd - contentStart;
-
-            if (outputHeight > MAX_EXPORT_CANVAS_HEIGHT) {
-              throw new Error(`Export image is too tall (${outputHeight}px)`);
-            }
-
-            const segmentsEstimate = Math.ceil(outputHeight / Math.max(1, scrollRect.height)) + 1;
-            if (segmentsEstimate > MAX_EXPORT_SEGMENTS) {
-              throw new Error('Export image is too long');
-            }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = scrollRect.width;
-            canvas.height = outputHeight;
-            const context = canvas.getContext('2d');
-            if (!context) {
-              throw new Error('Canvas context unavailable');
-            }
-
-            const captureAndLoad = async (rect: CaptureRect): Promise<HTMLImageElement> => {
-              const chunk = await coworkService.captureSessionImageChunk({ rect });
-              if (!chunk.success || !chunk.pngBase64) {
-                throw new Error(chunk.error || 'Failed to capture image chunk');
-              }
-              return loadImageFromBase64(chunk.pngBase64);
-            };
-
-            scrollContainer.scrollTop = Math.min(contentStart, Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight));
-            await waitForNextFrame();
-            await waitForNextFrame();
-
-            const maxScrollTop = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
-            let contentOffset = contentStart;
-            while (contentOffset < contentEnd) {
-              const targetScrollTop = Math.min(contentOffset, maxScrollTop);
-              scrollContainer.scrollTop = targetScrollTop;
-              await waitForNextFrame();
-              await waitForNextFrame();
-
-              const chunkImage = await captureAndLoad(scrollRect);
-              const sourceYOffset = Math.max(0, contentOffset - targetScrollTop);
-              const drawableHeight = Math.min(scrollRect.height - sourceYOffset, contentEnd - contentOffset);
-              if (drawableHeight <= 0) {
-                throw new Error('Failed to stitch export image');
-              }
-              const scaleY = chunkImage.naturalHeight / scrollRect.height;
-              const sourceYInImage = Math.max(0, Math.round(sourceYOffset * scaleY));
-              const sourceHeightInImage = Math.max(1, Math.min(
-                chunkImage.naturalHeight - sourceYInImage,
-                Math.round(drawableHeight * scaleY),
-              ));
-
-              context.drawImage(
-                chunkImage,
-                0,
-                sourceYInImage,
-                chunkImage.naturalWidth,
-                sourceHeightInImage,
-                0,
-                contentOffset - contentStart,
-                scrollRect.width,
-                drawableHeight,
-              );
-
-              contentOffset += drawableHeight;
-            }
-
-            const pngDataUrl = canvas.toDataURL('image/png');
-            const base64Index = pngDataUrl.indexOf(',');
-            if (base64Index < 0) {
-              throw new Error('Failed to encode export image');
-            }
-
-            const timestamp = formatExportTimestamp(new Date());
-            const saveResult = await coworkService.saveSessionResultImage({
-              pngBase64: pngDataUrl.slice(base64Index + 1),
-              defaultFileName: sanitizeExportFileName(`${currentSession.title}-${timestamp}.png`),
-            });
-            if (saveResult.success && !saveResult.canceled) {
-              window.dispatchEvent(new CustomEvent('app:showToast', {
-                detail: i18nService.t('coworkExportImageSuccess'),
-              }));
-              return;
-            }
-            if (!saveResult.success) {
-              throw new Error(saveResult.error || 'Failed to export image');
-            }
-          } finally {
-            scrollContainer.scrollTop = initialScrollTop;
-          }
-        } catch (error) {
-          console.error('Failed to export session image:', error);
-          window.dispatchEvent(new CustomEvent('app:showToast', {
-            detail: i18nService.t('coworkExportImageFailed'),
-          }));
-        } finally {
-          setIsExportingImage(false);
-        }
-      })();
-    });
   };
-
-  const handleConfirmDelete = async () => {
+const handleConfirmDelete = async () => {
     if (!currentSession) return;
     await coworkService.deleteSession(currentSession.id);
     setShowConfirmDelete(false);
@@ -1776,6 +1591,14 @@ const CoworkSessionDetail: React.FC<CoworkSessionDetailProps> = ({
           </div>
         </div>
       )}
+
+      {/* Export Options Modal */}
+      <ExportOptionsModal
+        isOpen={isExportingImage}
+        currentSession={currentSession}
+        scrollContainerRef={scrollContainerRef}
+        onClose={() => setIsExportingImage(false)}
+      />
 
       {/* Messages */}
       <div className="relative flex-1 min-h-0">
