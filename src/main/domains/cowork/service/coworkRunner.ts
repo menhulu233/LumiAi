@@ -68,6 +68,7 @@ import {
 import { ToolExecutionService } from './tools/ToolExecutionService';
 import { SandboxExecutionService } from './execution/SandboxExecutionService';
 import { LocalExecutionService } from './execution/LocalExecutionService';
+import { CoworkSessionService } from './CoworkSessionService';
 
 export * from './CoworkRunnerTypes';
 
@@ -112,49 +113,15 @@ const SANDBOX_HISTORY_MAX_MESSAGE_CHARS = 3000;
 const LOCAL_HISTORY_MAX_MESSAGES = 24;
 const LOCAL_HISTORY_MAX_TOTAL_CHARS = 32000;
 const LOCAL_HISTORY_MAX_MESSAGE_CHARS = 4000;
-const STREAM_UPDATE_THROTTLE_MS = 90;
-const STREAMING_TEXT_MAX_CHARS = 120_000;
-const STREAMING_THINKING_MAX_CHARS = 60_000;
-const TOOL_RESULT_MAX_CHARS = 120_000;
-const FINAL_RESULT_MAX_CHARS = 120_000;
-const STDERR_TAIL_MAX_CHARS = 24_000;
-const SDK_STARTUP_TIMEOUT_MS = 30_000;
-const SDK_STARTUP_TIMEOUT_WITH_USER_MCP_MS = 120_000;
-const STDERR_FATAL_PATTERNS = [
-  /authentication[_ ]error/i,
-  /invalid[_ ]api[_ ]key/i,
-  /unauthorized/i,
-  /model[_ ]not[_ ]found/i,
-  /connection[_ ]refused/i,
-  /ECONNREFUSED/,
-  /could not connect/i,
-  /api[_ ]key[_ ]not[_ ]valid/i,
-  /permission[_ ]denied/i,
-  /access[_ ]denied/i,
-  /rate[_ ]limit/i,
-  /quota[_ ]exceeded/i,
-  /billing/i,
-  /overloaded/i,
-];
 const CONTENT_TRUNCATED_HINT = '\n...[truncated to prevent memory pressure]';
 const TOOL_INPUT_PREVIEW_MAX_CHARS = 4000;
 const TOOL_INPUT_PREVIEW_MAX_DEPTH = 5;
 const TOOL_INPUT_PREVIEW_MAX_KEYS = 60;
 const TOOL_INPUT_PREVIEW_MAX_ITEMS = 30;
 const SKILLS_MARKER = '/skills/';
-const TASK_WORKSPACE_CONTAINER_DIR = '.lumiai-tasks';
 const PERMISSION_RESPONSE_TIMEOUT_MS = 60_000;
-const DELETE_TOOL_NAMES = new Set(['delete', 'remove', 'unlink', 'rmdir']);
 const SAFETY_APPROVAL_ALLOW_OPTION = '允许本次操作';
 const SAFETY_APPROVAL_DENY_OPTION = '拒绝本次操作';
-const DELETE_COMMAND_RE = /\b(rm|rmdir|unlink|del|erase|remove-item)\b/i;
-const FIND_DELETE_COMMAND_RE = /\bfind\b[\s\S]*\s-delete\b/i;
-const GIT_CLEAN_COMMAND_RE = /\bgit\s+clean\b/i;
-const PYTHON_BASH_COMMAND_RE = /(?:^|[^\w.-])(?:python(?:3)?|py(?:\.exe)?|pip(?:3)?)(?:\s+-3)?(?:\s|$)|\.py(?:\s|$)/i;
-const PYTHON_PIP_BASH_COMMAND_RE = /(?:^|[^\w.-])(?:pip(?:3)?|python(?:3)?\s+-m\s+pip|py(?:\.exe)?\s+-m\s+pip)(?:\s|$)/i;
-const MEMORY_REQUEST_TAIL_SPLIT_RE = /[,，。]\s*(?:请|麻烦)?你(?:帮我|帮忙|给我|为我|看下|看一下|查下|查一下)|[,，。]\s*帮我|[,，。]\s*请帮我|[,，。]\s*(?:能|可以)不能?\s*帮我|[,，。]\s*你看|[,，。]\s*请你/i;
-const MEMORY_PROCEDURAL_TEXT_RE = /(执行以下命令|run\s+(?:the\s+)?following\s+command|\b(?:cd|npm|pnpm|yarn|node|python|bash|sh|git|curl|wget)\b|\$[A-Z_][A-Z0-9_]*|&&|--[a-z0-9-]+|\/tmp\/|\.sh\b|\.bat\b|\.ps1\b)/i;
-const MEMORY_ASSISTANT_STYLE_TEXT_RE = /^(?:使用|use)\s+[A-Za-z0-9._-]+\s*(?:技能|skill)/i;
 function findSkillsMarkerIndex(value: string): number {
   return value.toLowerCase().lastIndexOf(SKILLS_MARKER);
 }
@@ -323,6 +290,7 @@ export class CoworkRunner extends EventEmitter {
   private workspace: WorkspaceService;
   private sandboxExecution: SandboxExecutionService;
   private localExecution: LocalExecutionService;
+  private sessionService: CoworkSessionService;
 
   constructor(store: CoworkStore) {
     super();
@@ -332,6 +300,7 @@ export class CoworkRunner extends EventEmitter {
     });
     this.toolExecution = new ToolExecutionService(this.store);
     this.workspace = new WorkspaceService(this.store);
+    this.sessionService = new CoworkSessionService(this.store);
     this.sandboxExecution = new SandboxExecutionService({
       store: this.store,
       emit: this.emit.bind(this),
@@ -1097,16 +1066,6 @@ export class CoworkRunner extends EventEmitter {
     return `${prompt.trimEnd()}${separator}${linesToAppend.join('\n')}`;
   }
 
-  private truncateSandboxHistoryContent(content: string, maxChars: number): string {
-    const normalized = content.replace(/\u0000/g, '').trim();
-    if (!normalized) {
-      return '';
-    }
-    if (normalized.length <= maxChars) {
-      return normalized;
-    }
-    return `${normalized.slice(0, maxChars)}\n...[truncated ${normalized.length - maxChars} chars]`;
-  }
 
   private truncateLargeContent(content: string, maxChars: number): string {
     if (content.length <= maxChars) {
@@ -1186,47 +1145,11 @@ export class CoworkRunner extends EventEmitter {
     maxChars: number,
     isTruncated: boolean
   ): { content: string; truncated: boolean; changed: boolean } {
-    if (!delta || isTruncated) {
-      return { content: current, truncated: isTruncated, changed: false };
-    }
-
-    const nextLength = current.length + delta.length;
-    if (nextLength <= maxChars) {
-      return { content: current + delta, truncated: false, changed: true };
-    }
-
-    const remaining = Math.max(0, maxChars - current.length);
-    const head = remaining > 0 ? `${current}${delta.slice(0, remaining)}` : current;
-    return {
-      content: `${head}${CONTENT_TRUNCATED_HINT}`,
-      truncated: true,
-      changed: true,
-    };
-  }
-
-  private shouldEmitStreamingUpdate(
-    lastEmitAt: number,
-    force = false
-  ): { emit: boolean; now: number } {
-    const now = Date.now();
-    if (force || now - lastEmitAt >= STREAM_UPDATE_THROTTLE_MS) {
-      return { emit: true, now };
-    }
-    return { emit: false, now };
+    return this.sessionService.appendStreamingDelta(current, delta, maxChars, isTruncated);
   }
 
   private formatSandboxHistoryMessage(message: CoworkMessage): string | null {
-    const content = this.truncateSandboxHistoryContent(message.content || '', SANDBOX_HISTORY_MAX_MESSAGE_CHARS);
-    if (!content) {
-      return null;
-    }
-
-    let role: string = message.type;
-    if (message.type === 'assistant' && message.metadata?.isThinking) {
-      role = 'assistant_thinking';
-    }
-
-    return `<message role="${role}">\n${content}\n</message>`;
+    return this.sessionService.formatHistoryMessage(message);
   }
 
   private buildHistoryBlocks(
@@ -1234,80 +1157,15 @@ export class CoworkRunner extends EventEmitter {
     currentPrompt: string,
     limits: { maxMessages: number; maxTotalChars: number; maxMessageChars: number }
   ): string[] {
-    if (messages.length === 0) {
-      return [];
-    }
-
-    const history = [...messages];
-    const trimmedCurrentPrompt = currentPrompt.trim();
-    const last = history[history.length - 1];
-    if (
-      trimmedCurrentPrompt
-      && last?.type === 'user'
-      && last.content.trim() === trimmedCurrentPrompt
-    ) {
-      history.pop();
-    }
-
-    const selectedFromNewest: string[] = [];
-    let totalChars = 0;
-    for (let i = history.length - 1; i >= 0; i -= 1) {
-      if (selectedFromNewest.length >= limits.maxMessages) {
-        break;
-      }
-      const block = this.formatSandboxHistoryMessage(history[i]);
-      if (!block) {
-        continue;
-      }
-
-      const nextTotal = totalChars + block.length;
-      if (nextTotal > limits.maxTotalChars) {
-        if (selectedFromNewest.length === 0) {
-          const truncated = this.truncateSandboxHistoryContent(block, limits.maxTotalChars);
-          if (truncated) {
-            selectedFromNewest.push(truncated);
-          }
-        }
-        break;
-      }
-
-      selectedFromNewest.push(block);
-      totalChars = nextTotal;
-    }
-
-    return selectedFromNewest.reverse();
+    return this.sessionService.buildHistoryBlocks(messages, currentPrompt, limits);
   }
 
   private buildSandboxHistoryBlocks(messages: CoworkMessage[], currentPrompt: string): string[] {
-    return this.buildHistoryBlocks(messages, currentPrompt, {
-      maxMessages: SANDBOX_HISTORY_MAX_MESSAGES,
-      maxTotalChars: SANDBOX_HISTORY_MAX_TOTAL_CHARS,
-      maxMessageChars: SANDBOX_HISTORY_MAX_MESSAGE_CHARS,
-    });
+    return this.sessionService.buildSandboxHistoryBlocks(messages, currentPrompt);
   }
 
   private injectSandboxHistoryPrompt(sessionId: string, currentPrompt: string, effectivePrompt: string): string {
-    const session = this.store.getSession(sessionId);
-    if (!session) {
-      return effectivePrompt;
-    }
-
-    const historyBlocks = this.buildSandboxHistoryBlocks(session.messages, currentPrompt);
-    if (historyBlocks.length === 0) {
-      return effectivePrompt;
-    }
-
-    return [
-      'The sandbox VM was restarted. Continue using the reconstructed conversation context below.',
-      'Use this context for continuity and do not quote it unless necessary.',
-      '<conversation_history>',
-      ...historyBlocks,
-      '</conversation_history>',
-      '',
-      '<current_user_request>',
-      effectivePrompt,
-      '</current_user_request>',
-    ].join('\n');
+    return this.sessionService.injectSandboxHistoryPrompt(sessionId, currentPrompt, effectivePrompt);
   }
 
   /**
@@ -1315,193 +1173,40 @@ export class CoworkRunner extends EventEmitter {
    * restarted after a stop (subprocess was killed, no SDK session to resume).
    */
   private injectLocalHistoryPrompt(sessionId: string, currentPrompt: string, effectivePrompt: string): string {
-    const session = this.store.getSession(sessionId);
-    if (!session) {
-      return effectivePrompt;
-    }
-
-    const historyBlocks = this.buildHistoryBlocks(session.messages, currentPrompt, {
-      maxMessages: LOCAL_HISTORY_MAX_MESSAGES,
-      maxTotalChars: LOCAL_HISTORY_MAX_TOTAL_CHARS,
-      maxMessageChars: LOCAL_HISTORY_MAX_MESSAGE_CHARS,
-    });
-    if (historyBlocks.length === 0) {
-      return effectivePrompt;
-    }
-
-    return [
-      'The session was interrupted and restarted. Continue using the conversation history below.',
-      'Use this context for continuity and do not quote it unless necessary.',
-      '<conversation_history>',
-      ...historyBlocks,
-      '</conversation_history>',
-      '',
-      '<current_user_request>',
-      effectivePrompt,
-      '</current_user_request>',
-    ].join('\n');
+    return this.sessionService.injectLocalHistoryPrompt(sessionId, currentPrompt, effectivePrompt);
   }
 
 
   private normalizeWorkspaceRoot(workspaceRoot: string, cwd: string): string {
-    const fallbackRoot = path.resolve(cwd);
-    const normalizedRoot = workspaceRoot?.trim()
-      ? path.resolve(workspaceRoot)
-      : fallbackRoot;
-    try {
-      return fs.realpathSync(normalizedRoot);
-    } catch {
-      return normalizedRoot;
-    }
+    return this.workspace.normalizeWorkspaceRoot(workspaceRoot, cwd);
   }
 
   private inferWorkspaceRootFromSessionCwd(cwd: string): string {
-    const resolved = path.resolve(cwd);
-    const marker = `${path.sep}${TASK_WORKSPACE_CONTAINER_DIR}${path.sep}`;
-    const markerIndex = resolved.lastIndexOf(marker);
-    if (markerIndex > 0) {
-      return resolved.slice(0, markerIndex);
-    }
-    return resolved;
+    return this.workspace.inferWorkspaceRootFromSessionCwd(cwd);
   }
 
   private resolveHostWorkspaceFallback(workspaceRoot: string): string | null {
-    const candidates = [
-      workspaceRoot,
-      this.store.getConfig().workingDirectory,
-      process.cwd(),
-    ];
-
-    for (const candidate of candidates) {
-      const trimmed = typeof candidate === 'string' ? candidate.trim() : '';
-      if (!trimmed) continue;
-      const resolved = path.resolve(trimmed);
-      if (this.isDirectory(resolved)) {
-        return resolved;
-      }
-    }
-    return null;
+    return this.workspace.resolveHostWorkspaceFallback(workspaceRoot);
   }
 
   private mapSandboxGuestCwdToHost(cwd: string, hostWorkspaceRoot: string): string | null {
-    const normalizedInput = cwd.replace(/\\/g, '/').replace(/\/+$/, '');
-    if (!normalizedInput) return null;
-
-    const hostRoot = path.resolve(hostWorkspaceRoot);
-    const normalizedHostRoot = hostRoot.replace(/\\/g, '/').replace(/\/+$/, '');
-
-    const applyGuestToHost = (guestPath: string): string | null => {
-      if (
-        guestPath === SANDBOX_WORKSPACE_LEGACY_ROOT
-        || guestPath === SANDBOX_WORKSPACE_GUEST_ROOT
-      ) {
-        return hostRoot;
-      }
-
-      if (guestPath.startsWith(`${SANDBOX_WORKSPACE_GUEST_ROOT}/`)) {
-        const relativePath = guestPath.slice(SANDBOX_WORKSPACE_GUEST_ROOT.length).replace(/^\/+/, '');
-        return relativePath ? path.resolve(hostRoot, ...relativePath.split('/')) : hostRoot;
-      }
-
-      return null;
-    };
-
-    // Native guest paths from sandbox runtime.
-    const directMapped = applyGuestToHost(normalizedInput);
-    if (directMapped) return directMapped;
-
-    // Windows may resolve "/workspace/project" to "C:/workspace/project". Map this back.
-    const windowsGuestMatch = normalizedInput.match(/^[A-Za-z]:(\/workspace(?:\/project)?(?:\/.*)?)$/);
-    if (windowsGuestMatch) {
-      const windowsMapped = applyGuestToHost(windowsGuestMatch[1]);
-      if (windowsMapped) return windowsMapped;
-    }
-
-    // Guard against accidentally remapping the already-correct host root.
-    if (normalizedInput === normalizedHostRoot) {
-      return hostRoot;
-    }
-
-    return null;
+    return this.workspace.mapSandboxGuestCwdToHost(cwd, hostWorkspaceRoot);
   }
 
   private resolveSessionCwdForExecution(sessionId: string, cwd: string, workspaceRoot: string): string {
-    const trimmed = cwd.trim();
-    const directResolved = path.resolve(trimmed || workspaceRoot || process.cwd());
-    if (this.isDirectory(directResolved)) {
-      return directResolved;
-    }
-
-    const fallbackRoot = this.resolveHostWorkspaceFallback(workspaceRoot);
-    if (!fallbackRoot) {
-      return directResolved;
-    }
-
-    const mapped = this.mapSandboxGuestCwdToHost(trimmed || directResolved, fallbackRoot);
-    if (!mapped) {
-      return directResolved;
-    }
-
-    const resolvedMapped = path.resolve(mapped);
-    if (resolvedMapped !== directResolved) {
-      coworkLog('WARN', 'resolveSessionCwd', 'Mapped sandbox guest cwd to host workspace path', {
-        sessionId,
-        originalCwd: cwd,
-        mappedCwd: resolvedMapped,
-        fallbackRoot,
-      });
-    }
-    return resolvedMapped;
+    return this.workspace.resolveSessionCwdForExecution(sessionId, cwd, workspaceRoot);
   }
-
-  private formatLocalDateTime(date: Date): string {
-    const pad = (value: number): string => String(value).padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-  }
-
-  private formatLocalIsoWithoutTimezone(date: Date): string {
-    const pad = (value: number): string => String(value).padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-  }
-
-  private formatUtcOffset(date: Date): string {
-    const offsetMinutes = -date.getTimezoneOffset();
-    const sign = offsetMinutes >= 0 ? '+' : '-';
-    const absMinutes = Math.abs(offsetMinutes);
-    const hours = Math.floor(absMinutes / 60);
-    const minutes = absMinutes % 60;
-    return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-  }
-
 
   private extractToolCommand(toolInput: Record<string, unknown>): string {
-    const commandLike = toolInput.command ?? toolInput.cmd ?? toolInput.script;
-    return typeof commandLike === 'string' ? commandLike : '';
+    return this.toolExecution.extractToolCommand(toolInput);
   }
 
   private isDeleteOperation(toolName: string, toolInput: Record<string, unknown>): boolean {
-    const normalizedToolName = toolName.toLowerCase();
-    if (DELETE_TOOL_NAMES.has(normalizedToolName)) {
-      return true;
-    }
-
-    if (normalizedToolName !== 'bash') {
-      return false;
-    }
-
-    const command = this.extractToolCommand(toolInput);
-    if (!command.trim()) {
-      return false;
-    }
-    return DELETE_COMMAND_RE.test(command)
-      || FIND_DELETE_COMMAND_RE.test(command)
-      || GIT_CLEAN_COMMAND_RE.test(command);
+    return this.toolExecution.isDeleteOperation(toolName, toolInput);
   }
 
   private truncateCommandPreview(command: string, maxLength = 120): string {
-    const compact = command.replace(/\s+/g, ' ').trim();
-    if (compact.length <= maxLength) return compact;
-    return `${compact.slice(0, maxLength)}...`;
+    return this.toolExecution.truncateCommandPreview(command, maxLength);
   }
 
   private buildSafetyQuestionInput(
@@ -1535,30 +1240,7 @@ export class CoworkRunner extends EventEmitter {
   }
 
   private isSafetyApproval(result: PermissionResult, question: string): boolean {
-    if (result.behavior === 'deny') {
-      return false;
-    }
-
-    const updatedInput = result.updatedInput;
-    if (!updatedInput || typeof updatedInput !== 'object') {
-      return false;
-    }
-
-    const answers = (updatedInput as Record<string, unknown>).answers;
-    if (!answers || typeof answers !== 'object') {
-      return false;
-    }
-
-    const rawAnswer = (answers as Record<string, unknown>)[question];
-    if (typeof rawAnswer !== 'string') {
-      return false;
-    }
-
-    return rawAnswer
-      .split('|||')
-      .map((value) => value.trim())
-      .filter(Boolean)
-      .includes(SAFETY_APPROVAL_ALLOW_OPTION);
+    return this.toolExecution.isSafetyApproval(result, question);
   }
 
   private async requestSafetyApproval(
@@ -1893,48 +1575,6 @@ export class CoworkRunner extends EventEmitter {
     const activeSession = this.activeSessions.get(pending.sessionId);
     if (activeSession) {
       activeSession.pendingPermission = null;
-    }
-  }
-
-  private writeSandboxHostToolResponse(
-    activeSession: ActiveSession,
-    responsesDir: string,
-    requestId: string,
-    payload: Record<string, unknown>
-  ): void {
-    const responsePath = path.join(responsesDir, `${requestId}.host-tool.json`);
-    try {
-      fs.writeFileSync(responsePath, JSON.stringify(payload));
-    } catch (error) {
-      coworkLog('WARN', 'sandbox:hostTool', 'Failed to write host tool response file', {
-        requestId,
-        responsePath,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-    if (activeSession.ipcBridge) {
-      activeSession.ipcBridge.sendHostToolResponse(requestId, payload);
-    }
-  }
-
-  private writeSandboxPermissionResponse(
-    activeSession: ActiveSession,
-    responsesDir: string,
-    requestId: string,
-    result: PermissionResult
-  ): void {
-    const responsePath = path.join(responsesDir, `${requestId}.json`);
-    try {
-      fs.writeFileSync(responsePath, JSON.stringify(result));
-    } catch (error) {
-      coworkLog('WARN', 'sandbox:permission', 'Failed to write permission response file', {
-        requestId,
-        responsePath,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-    if (activeSession.ipcBridge) {
-      activeSession.ipcBridge.sendPermissionResponse(requestId, result as unknown as Record<string, unknown>);
     }
   }
 
@@ -2282,44 +1922,6 @@ export class CoworkRunner extends EventEmitter {
     return rewritten;
   }
 
-  private resolveAssistantEventError(payload: Record<string, unknown>): string | null {
-    const directError = this.normalizeSdkError(payload.error);
-    if (directError) {
-      return directError;
-    }
-    if (typeof payload.error !== 'string' || payload.error.trim().toLowerCase() !== 'unknown') {
-      return null;
-    }
-
-    const messagePayload = payload.message;
-    if (!messagePayload || typeof messagePayload !== 'object') {
-      return null;
-    }
-    const content = (messagePayload as Record<string, unknown>).content;
-    const inferredError = this.extractText(content)?.trim();
-    if (!inferredError) {
-      return null;
-    }
-    return inferredError;
-  }
-
-  private normalizeSdkError(value: unknown): string | null {
-    if (typeof value !== 'string') {
-      return null;
-    }
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return null;
-    }
-    if (trimmed.toLowerCase() === 'unknown') {
-      return null;
-    }
-    return trimmed;
-  }
-
-
-
-
   private waitForPermissionResponse(
     sessionId: string,
     requestId: string,
@@ -2621,23 +2223,6 @@ export class CoworkRunner extends EventEmitter {
     return session?.messages.find((message) => message.id === messageId);
   }
 
-  private updateMessageMerged(
-    sessionId: string,
-    messageId: string,
-    updates: { content?: string; metadata?: CoworkMessage['metadata'] }
-  ): void {
-    const existing = this.getMessageById(sessionId, messageId);
-    const mergedMetadata = updates.metadata
-      ? { ...(existing?.metadata ?? {}), ...updates.metadata }
-      : undefined;
-
-    this.store.updateMessage(sessionId, messageId, {
-      content: updates.content,
-      metadata: mergedMetadata,
-    });
-  }
-
-
   private extractText(value: unknown): string | null {
     if (typeof value === 'string') {
       return value;
@@ -2668,19 +2253,6 @@ export class CoworkRunner extends EventEmitter {
     }
 
     return null;
-  }
-
-  private formatToolResultContent(record: Record<string, unknown>): string {
-    const raw = record.content ?? record;
-    const text = this.extractText(raw);
-    if (text !== null) {
-      return this.truncateLargeContent(text, TOOL_RESULT_MAX_CHARS);
-    }
-    try {
-      return this.truncateLargeContent(JSON.stringify(raw, null, 2), TOOL_RESULT_MAX_CHARS);
-    } catch {
-      return this.truncateLargeContent(String(raw), TOOL_RESULT_MAX_CHARS);
-    }
   }
 
   private handleError(sessionId: string, error: string): void {

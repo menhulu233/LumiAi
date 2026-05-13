@@ -5,11 +5,27 @@ import { getContainer } from './container';
 import { stopCoworkOpenAICompatProxy } from '../domains/cowork/service/coworkOpenAICompatProxy';
 import { setIsQuitting } from './window';
 
-let isCleanupFinished = false;
-let isCleanupInProgress = false;
+let _isCleanupFinished = false;
+let _isCleanupInProgress = false;
 
+// Internal state accessors (read-only)
 export function getCleanupState(): { finished: boolean; inProgress: boolean } {
-  return { finished: isCleanupFinished, inProgress: isCleanupInProgress };
+  return { finished: _isCleanupFinished, inProgress: _isCleanupInProgress };
+}
+
+// Internal state mutators (only for use within cleanup.ts)
+function markCleanupStarted(): void {
+  _isCleanupInProgress = true;
+  _isCleanupFinished = false;
+}
+
+function markCleanupFinished(): void {
+  _isCleanupInProgress = false;
+  _isCleanupFinished = true;
+}
+
+function isCleanupRunning(): boolean {
+  return _isCleanupInProgress || _isCleanupFinished;
 }
 
 export const runAppCleanup = async (): Promise<void> => {
@@ -44,24 +60,23 @@ export const runAppCleanup = async (): Promise<void> => {
 };
 
 function performCleanupAndExit(): void {
-  if (isCleanupFinished || isCleanupInProgress) {
+  if (isCleanupRunning()) {
     return;
   }
-  isCleanupInProgress = true;
+  markCleanupStarted();
   setIsQuitting(true);
   void runAppCleanup()
     .catch((error) => {
       console.error('[Main] Cleanup error:', error);
     })
     .finally(() => {
-      isCleanupFinished = true;
-      isCleanupInProgress = false;
+      markCleanupFinished();
       app.exit(0);
     });
 }
 
 export const handleTerminationSignal = (signal: NodeJS.Signals) => {
-  if (isCleanupFinished || isCleanupInProgress) {
+  if (isCleanupRunning()) {
     return;
   }
   console.log(`[Main] Received ${signal}, running cleanup before exit...`);
@@ -69,7 +84,7 @@ export const handleTerminationSignal = (signal: NodeJS.Signals) => {
 };
 
 export function performAppQuit(e?: Electron.Event): void {
-  if (isCleanupFinished) {
+  if (isCleanupRunning()) {
     return;
   }
   if (e) {

@@ -27,7 +27,7 @@ export const TITLEBAR_COLORS = {
 
 export const PRELOAD_PATH = app.isPackaged
   ? path.join(__dirname, 'preload.js')
-  : path.join(__dirname, '../dist-electron/preload.js');
+  : path.join(app.getAppPath(), 'dist-electron', 'preload.js');
 
 export function setupAppEventHandlers(): void {
   if (isLinux) {

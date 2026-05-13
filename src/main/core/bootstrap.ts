@@ -20,6 +20,7 @@ import { registerIPCHandlers } from '../ipc/router';
 import { setContentSecurityPolicy } from './csp';
 import { createWindow, getMainWindow, updateTitleBarOverlay } from './window';
 import { migrateLegacyMemoryFileToUserMemories, migrateFromElectronStore } from './migrations';
+import { broadcastToAllWindows } from './broadcaster';
 
 export async function bootstrap(): Promise<void> {
   console.log('[Main] initApp: waiting for app.whenReady()');
@@ -48,6 +49,49 @@ export async function bootstrap(): Promise<void> {
   console.log('[Main] initApp: assembling container');
   const container = createContainer(store);
   console.log('[Main] initApp: container assembled');
+
+  // Wire IMGatewayManager callbacks (moved from factories.ts for single responsibility)
+  container.imGatewayManager.initialize({
+    getLLMConfig: async () => {
+      const appConfig = store.get<any>('app_config');
+      if (!appConfig) return null;
+      const providers = appConfig.providers || {};
+      for (const [providerName, providerConfig] of Object.entries(providers) as [string, any][]) {
+        if (providerConfig.enabled && providerConfig.apiKey) {
+          const model = providerConfig.models?.[0]?.id;
+          return {
+            apiKey: providerConfig.apiKey,
+            baseUrl: providerConfig.baseUrl,
+            model: model,
+            provider: providerName,
+          };
+        }
+      }
+      if (appConfig.api?.key) {
+        return {
+          apiKey: appConfig.api.key,
+          baseUrl: appConfig.api.baseUrl,
+          model: appConfig.model?.defaultModel,
+        };
+      }
+      return null;
+    },
+    getSkillsPrompt: async () => {
+      return container.skillManager.buildAutoRoutingPrompt();
+    },
+  });
+
+  container.imGatewayManager.on('statusChange', (status) => {
+    broadcastToAllWindows('im:status:change', status);
+  });
+
+  container.imGatewayManager.on('message', (message) => {
+    broadcastToAllWindows('im:message:received', message);
+  });
+
+  container.imGatewayManager.on('error', ({ platform, error }) => {
+    console.error(`[IM Gateway] ${platform} error:`, error);
+  });
 
   const resetCount = container.coworkStore.resetRunningSessions();
   console.log('[Main] initApp: resetRunningSessions done, count:', resetCount);

@@ -7,7 +7,6 @@ import { McpStore } from '../domains/mcp/store/mcpStore';
 import { IMGatewayManager } from '../domains/im/service/imGatewayManager';
 import { ScheduledTaskStore } from '../domains/scheduled-task/store/scheduledTaskStore';
 import { Scheduler } from '../domains/scheduled-task/service/scheduler';
-import { broadcastToAllWindows } from './broadcaster';
 import { setContainer, getContainer, type Container } from './container';
 import { coworkMigrations } from '../domains/cowork/store/_migrations';
 import { memoryMigrations } from '../domains/cowork/store/_memoryMigrations';
@@ -15,6 +14,14 @@ import { scheduledTaskMigrations } from '../domains/scheduled-task/store/_migrat
 import { mcpMigrations } from '../domains/mcp/store/_migrations';
 
 let storeInitPromise: Promise<KvStore> | null = null;
+
+function assertContainerReady(name: string): void {
+  try {
+    getContainer();
+  } catch {
+    throw new Error(`Container not initialized. Cannot call ${name}() before bootstrap().`);
+  }
+}
 
 export const initStore = async (): Promise<KvStore> => {
   if (!storeInitPromise) {
@@ -54,7 +61,7 @@ export function createContainer(kvStore: KvStore): Container {
   // 4. SkillManager
   const skillManager = new SkillManager(kvStore);
 
-  // 5. IMGatewayManager
+  // 5. IMGatewayManager (wiring deferred to bootstrap.ts)
   const imGatewayManager = new IMGatewayManager(
     kvStore.getDatabase(),
     () => kvStore.save(),
@@ -63,49 +70,6 @@ export function createContainer(kvStore: KvStore): Container {
       coworkStore,
     }
   );
-
-  // Wire IMGatewayManager callbacks
-  imGatewayManager.initialize({
-    getLLMConfig: async () => {
-      const appConfig = kvStore.get<any>('app_config');
-      if (!appConfig) return null;
-      const providers = appConfig.providers || {};
-      for (const [providerName, providerConfig] of Object.entries(providers) as [string, any][]) {
-        if (providerConfig.enabled && providerConfig.apiKey) {
-          const model = providerConfig.models?.[0]?.id;
-          return {
-            apiKey: providerConfig.apiKey,
-            baseUrl: providerConfig.baseUrl,
-            model: model,
-            provider: providerName,
-          };
-        }
-      }
-      if (appConfig.api?.key) {
-        return {
-          apiKey: appConfig.api.key,
-          baseUrl: appConfig.api.baseUrl,
-          model: appConfig.model?.defaultModel,
-        };
-      }
-      return null;
-    },
-    getSkillsPrompt: async () => {
-      return skillManager.buildAutoRoutingPrompt();
-    },
-  });
-
-  imGatewayManager.on('statusChange', (status) => {
-    broadcastToAllWindows('im:status:change', status);
-  });
-
-  imGatewayManager.on('message', (message) => {
-    broadcastToAllWindows('im:message:received', message);
-  });
-
-  imGatewayManager.on('error', ({ platform, error }) => {
-    console.error(`[IM Gateway] ${platform} error:`, error);
-  });
 
   // 6. ScheduledTaskStore
   const scheduledTaskStore = new ScheduledTaskStore(kvStore.getDatabase(), () => kvStore.save());
@@ -136,14 +100,38 @@ export function createContainer(kvStore: KvStore): Container {
 
 // --- Legacy getters (backward compatibility) ---
 
-export const getStore = (): KvStore => getContainer().store;
-export const getCoworkStore = (): CoworkStore => getContainer().coworkStore;
-export const getCoworkRunner = (): CoworkRunner => getContainer().coworkRunner;
-export const getSkillManager = (): SkillManager => getContainer().skillManager;
-export const getMcpStore = (): McpStore => getContainer().mcpStore;
-export const getIMGatewayManager = (): IMGatewayManager => getContainer().imGatewayManager;
-export const getScheduledTaskStore = (): ScheduledTaskStore => getContainer().scheduledTaskStore;
-export const getScheduler = (): Scheduler => getContainer().scheduler;
+export const getStore = (): KvStore => {
+  assertContainerReady('getStore');
+  return getContainer().store;
+};
+export const getCoworkStore = (): CoworkStore => {
+  assertContainerReady('getCoworkStore');
+  return getContainer().coworkStore;
+};
+export const getCoworkRunner = (): CoworkRunner => {
+  assertContainerReady('getCoworkRunner');
+  return getContainer().coworkRunner;
+};
+export const getSkillManager = (): SkillManager => {
+  assertContainerReady('getSkillManager');
+  return getContainer().skillManager;
+};
+export const getMcpStore = (): McpStore => {
+  assertContainerReady('getMcpStore');
+  return getContainer().mcpStore;
+};
+export const getIMGatewayManager = (): IMGatewayManager => {
+  assertContainerReady('getIMGatewayManager');
+  return getContainer().imGatewayManager;
+};
+export const getScheduledTaskStore = (): ScheduledTaskStore => {
+  assertContainerReady('getScheduledTaskStore');
+  return getContainer().scheduledTaskStore;
+};
+export const getScheduler = (): Scheduler => {
+  assertContainerReady('getScheduler');
+  return getContainer().scheduler;
+};
 
 // wireIMGatewayManager is now handled inside createContainer.
 // Kept as a no-op for any external callers that may still reference it.

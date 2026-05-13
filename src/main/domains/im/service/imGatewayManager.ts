@@ -68,6 +68,9 @@ export class IMGatewayManager extends EventEmitter {
   private coworkRunner: CoworkRunner | null = null;
   private coworkStore: CoworkStore | null = null;
 
+  // Startup promise for cleanup coordination
+  private startupPromise: Promise<void> | null = null;
+
   constructor(db: Database, saveDb: () => void, options?: IMGatewayManagerOptions) {
     super();
 
@@ -834,6 +837,28 @@ export class IMGatewayManager extends EventEmitter {
    * Start all enabled gateways
    */
   async startAllEnabled(): Promise<void> {
+    if (this.startupPromise) {
+      return this.startupPromise;
+    }
+
+    this.startupPromise = this.doStartAllEnabled();
+    try {
+      await this.startupPromise;
+    } catch (error: any) {
+      console.error(`[IMGatewayManager] Startup failed: ${error.message}`);
+    } finally {
+      this.startupPromise = null;
+    }
+  }
+
+  /**
+   * Get the current startup promise if startup is in progress
+   */
+  getStartupPromise(): Promise<void> | null {
+    return this.startupPromise;
+  }
+
+  private async doStartAllEnabled(): Promise<void> {
     const config = this.getConfig();
 
     if (config.dingtalk.enabled && config.dingtalk.clientId && config.dingtalk.clientSecret) {
@@ -891,6 +916,15 @@ export class IMGatewayManager extends EventEmitter {
    * Stop all gateways
    */
   async stopAll(): Promise<void> {
+    // Wait for any in-progress startup to complete before stopping
+    if (this.startupPromise) {
+      try {
+        await this.startupPromise;
+      } catch {
+        // Startup failed, proceed to stop
+      }
+    }
+
     await Promise.all([
       this.dingtalkGateway.stop(),
       this.feishuGateway.stop(),
