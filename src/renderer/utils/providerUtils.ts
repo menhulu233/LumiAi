@@ -1,4 +1,5 @@
 import type { ProviderType } from '../config/providerMeta';
+import { providerSwitchableDefaultBaseUrls, providerKeys } from '../config/providerMeta';
 import type { AppConfig } from '../config';
 import { defaultConfig } from '../config';
 
@@ -34,7 +35,6 @@ export const getProviderDefaultBaseUrl = (
   provider: ProviderType,
   apiFormat: 'anthropic' | 'openai'
 ): string | null => {
-  const { providerSwitchableDefaultBaseUrls } = require('../config/providerMeta');
   const defaults = providerSwitchableDefaultBaseUrls[provider];
   return defaults ? defaults[apiFormat] : null;
 };
@@ -56,7 +56,6 @@ export const shouldAutoSwitchProviderBaseUrl = (
   provider: ProviderType,
   currentBaseUrl: string
 ): boolean => {
-  const { providerSwitchableDefaultBaseUrls } = require('../config/providerMeta');
   const defaults = providerSwitchableDefaultBaseUrls[provider];
   if (!defaults) return false;
   const normalizedCurrent = normalizeBaseUrl(currentBaseUrl);
@@ -184,7 +183,6 @@ export const getDefaultProviders = (): ProvidersConfig => {
 };
 
 export const getDefaultActiveProvider = (): ProviderType => {
-  const { providerKeys } = require('../config/providerMeta');
   const providers = (defaultConfig.providers ?? {}) as ProvidersConfig;
   const firstEnabledProvider = providerKeys.find(
     (providerKey: ProviderType) => providers[providerKey]?.enabled
