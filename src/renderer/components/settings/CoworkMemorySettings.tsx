@@ -182,3 +182,5 @@ export function CoworkMemorySettings({
     </div>
   );
 }
+
+export default CoworkMemorySettings;
