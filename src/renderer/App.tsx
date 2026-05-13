@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from './store';
-import Settings, { type SettingsOpenOptions } from './components/Settings';
+import Settings, { type SettingsOpenOptions } from './components/settings/Settings';
 import Sidebar from './components/Sidebar';
 import Toast from './components/Toast';
 import WindowTitleBar from './components/window/WindowTitleBar';

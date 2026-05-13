@@ -15,7 +15,7 @@ import SidebarToggleIcon from '../icons/SidebarToggleIcon';
 import ComposeIcon from '../icons/ComposeIcon';
 import WindowTitleBar from '../window/WindowTitleBar';
 import { QuickActionBar, PromptPanel } from '../quick-actions';
-import type { SettingsOpenOptions } from '../Settings';
+import type { SettingsOpenOptions } from '../settings/Settings';
 import type { CoworkSession, CoworkImageAttachment } from '../../types/cowork';
 
 export interface CoworkViewProps {
