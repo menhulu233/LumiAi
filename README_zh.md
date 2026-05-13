@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>7×24 小时帮你干活的全场景个人助理，由网易有道开发</strong>
+  <strong>7×24 小时帮你干活的全场景个人助理</strong>
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 
 ---
 
-**LumiAi** 是由[网易有道](https://www.youdao.com/)开发的全场景个人助理 Agent。它 7×24 小时待命，能够帮你完成日常办公中的各类事务 —— 数据分析、制作 PPT、生成视频、撰写文档、搜索信息、收发邮件、定时任务，以及更多。
+**LumiAi** 是全场景个人助理 Agent。它 7×24 小时待命，能够帮你完成日常办公中的各类事务 —— 数据分析、制作 PPT、生成视频、撰写文档、搜索信息、收发邮件、定时任务，以及更多。
 
 LumiAi 的核心是 **Cowork 模式**，它能在本地或沙箱环境中执行工具、操作文件、运行命令，一切都在你的监督下自主完成。此外，LumiAi 支持通过钉钉、飞书、Telegram、Discord 等 IM 平台远程触发，让你在手机上也能随时指挥 Agent 工作。
 
@@ -267,8 +267,8 @@ LumiAi 支持将 Agent 桥接到多种 IM 平台。在手机上通过 IM 发送�
 | 飞书 | Lark SDK | 飞书应用机器人 |
 | Telegram | grammY | Bot API 接入 |
 | Discord | discord.js | Discord Bot 接入 |
-| 云信 IM | node-nim V2 SDK | 网易云信 IM P2P 私聊 |
-| 网易小蜜蜂 | node-nim V2 SDK | [网易小蜜蜂个人数字助理](https://wp.m.163.com/163/html/bee/lumiai_guide/index.html) |
+| 云信 IM | node-nim V2 SDK | 云信 IM P2P 私聊 |
+| 小蜜蜂 | node-nim V2 SDK | 小蜜蜂个人数字助理 |
 
 在设置面板中配置对应平台的 Token/密钥即可启用。配置完成后，你可以在手机 IM 中直接对 Agent 下达指令（如「帮我分析这份数据」「做一份本周工作汇报 PPT」），Agent 会在桌面端自动执行并返回结果。
 
@@ -386,9 +386,9 @@ PR 描述中请包含：变更说明、关联 issue、UI 变更附截图，以�
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=netease-youdao/LumiAi&type=date&legend=top-left)](https://www.star-history.com/#netease-youdao/LumiAi&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=menhulu233/LumiAi&type=date&legend=top-left)](https://www.star-history.com/#menhulu233/LumiAi&type=date&legend=top-left)
 
 
 ---
 
-由[网易有道](https://www.youdao.com/)开发维护。
+由 LumiAi 开发维护。
