@@ -4,7 +4,6 @@ import path from 'path';
 import fs from 'fs';
 import type { ChildProcessByStdio } from 'child_process';
 import type { Readable } from 'stream';
-import { StringDecoder } from 'string_decoder';
 import type { CoworkStore } from '../../store';
 import type { ActiveSession, PermissionRequest } from '../CoworkRunnerTypes';
 import type { SandboxRuntimeInfo } from '../coworkSandboxRuntime';
@@ -24,11 +23,7 @@ import { handleClaudeEvent, finalizeStreamingContent } from '../coworkRunnerStre
 import {
   getCurrentApiConfig,
 } from '../claudeSettings';
-import { getEnhancedEnv, getSkillsRoot } from '../coworkUtil';
-import {
-  rewriteSkillReferencesForSandbox,
-  rewriteSkillLocationForSandbox,
-} from '../coworkRunnerPrompt';
+import { getEnhancedEnv } from '../coworkUtil';
 import {
   extractHostFromUrl,
   mergeNoProxyList,
@@ -36,6 +31,14 @@ import {
   formatSandboxSpawnError,
 } from '../coworkRunnerHelpers';
 import { coworkLog } from '../coworkLogger';
+import {
+  collectHostSkillsRoots,
+  resolveSandboxSkillsConfig,
+  enforceSandboxWorkspacePrompt,
+  resolveAutoRoutingForSandbox,
+} from './sandboxSkills';
+import { readSandboxStream, writeSandboxHostToolResponse } from './sandboxStream';
+import { waitForVmReady } from './sandboxLifecycle';
 
 export const SANDBOX_ATTACHMENT_DIR = path.join('.cowork-temp', 'attachments');
 
@@ -136,8 +139,8 @@ export class SandboxExecutionService {
     const paths = ensureCoworkSandboxDirs(sessionId);
     const cwdMapping = resolveSandboxCwd(cwd);
     const env = await getEnhancedEnv('sandbox');
-    const hostSkillsRoots = this.collectHostSkillsRoots(env, cwdMapping, systemPrompt);
-    const sandboxSkills = this.resolveSandboxSkillsConfig(hostSkillsRoots, runtimeInfo.platform);
+    const hostSkillsRoots = collectHostSkillsRoots(env, cwdMapping, systemPrompt);
+    const sandboxSkills = resolveSandboxSkillsConfig(hostSkillsRoots, runtimeInfo.platform);
     const sandboxEnv = this.buildSandboxEnv(env, sandboxSkills.guestSkillsRoot);
     coworkLog('INFO', 'runSandbox', 'Resolved sandbox API endpoint', {
       sessionId,
@@ -147,8 +150,8 @@ export class SandboxExecutionService {
       noProxy: sandboxEnv.NO_PROXY ?? sandboxEnv.no_proxy ?? null,
       directHostRouting: !(sandboxEnv.HTTP_PROXY || sandboxEnv.http_proxy),
     });
-    const sandboxSystemPrompt = this.enforceSandboxWorkspacePrompt(systemPrompt, cwdMapping.guestPath);
-    const resolvedSystemPrompt = this.resolveAutoRoutingForSandbox(sandboxSystemPrompt, {
+    const sandboxSystemPrompt = enforceSandboxWorkspacePrompt(systemPrompt, cwdMapping.guestPath);
+    const resolvedSystemPrompt = resolveAutoRoutingForSandbox(sandboxSystemPrompt, {
       guestSkillsRoot: sandboxSkills.guestSkillsRoot,
       hostSkillsRoots: hostSkillsRoots,
       hostSkillsRootMounts: sandboxSkills.rootMounts,
@@ -326,7 +329,7 @@ export class SandboxExecutionService {
           if (!requestId) return;
 
           const result = this.deps.hostToolExecutor(payload);
-          this.writeSandboxHostToolResponse(activeSession, paths.responsesDir, requestId, {
+          writeSandboxHostToolResponse(activeSession, paths.responsesDir, requestId, {
             type: 'host_tool_response',
             requestId,
             success: result.success,
@@ -431,7 +434,7 @@ export class SandboxExecutionService {
           platform: runtimeInfo.platform,
         });
 
-        const vmReady = await this.waitForVmReady(paths.ipcDir, child, vmReadyTimeoutMs, {
+        const vmReady = await waitForVmReady(paths.ipcDir, child, vmReadyTimeoutMs, {
           platform: runtimeInfo.platform,
           accelMode,
         });
@@ -527,7 +530,7 @@ export class SandboxExecutionService {
         }
 
         const { requestId, streamPath } = buildSandboxRequest(paths, input);
-        streamPromise = this.readSandboxStream(streamPath, handleLine, streamAbort.signal);
+        streamPromise = readSandboxStream(streamPath, handleLine, streamAbort.signal);
 
         // On Windows, send the request via virtio-serial bridge instead of file
         if (activeSession.ipcBridge) {
@@ -753,9 +756,9 @@ export class SandboxExecutionService {
     const paths = ensureCoworkSandboxDirs(sessionId);
     const cwdMapping = resolveSandboxCwd(cwd);
     const env = await getEnhancedEnv('sandbox');
-    const hostSkillsRoots = this.collectHostSkillsRoots(env, cwdMapping, systemPrompt);
-    const sandboxSystemPrompt = this.enforceSandboxWorkspacePrompt(systemPrompt, cwdMapping.guestPath);
-    const resolvedSystemPrompt = this.resolveAutoRoutingForSandbox(sandboxSystemPrompt, {
+    const hostSkillsRoots = collectHostSkillsRoots(env, cwdMapping, systemPrompt);
+    const sandboxSystemPrompt = enforceSandboxWorkspacePrompt(systemPrompt, cwdMapping.guestPath);
+    const resolvedSystemPrompt = resolveAutoRoutingForSandbox(sandboxSystemPrompt, {
       guestSkillsRoot: activeSession.sandboxSkillsGuestPath ?? null,
       hostSkillsRoots: hostSkillsRoots,
       hostSkillsRootMounts: activeSession.sandboxSkillRootMounts,
@@ -850,7 +853,7 @@ export class SandboxExecutionService {
         const reqId = String(payload.requestId ?? '');
         if (!reqId) return;
         const result = this.deps.hostToolExecutor(payload);
-        this.writeSandboxHostToolResponse(activeSession, paths.responsesDir, reqId, {
+        writeSandboxHostToolResponse(activeSession, paths.responsesDir, reqId, {
           type: 'host_tool_response',
           requestId: reqId,
           success: result.success,
@@ -884,7 +887,7 @@ export class SandboxExecutionService {
       }
     };
 
-    const streamPromise = this.readSandboxStream(streamPath, handleLine, streamAbort.signal);
+    const streamPromise = readSandboxStream(streamPath, handleLine, streamAbort.signal);
 
     if (this.deps.isSessionStopRequested(sessionId, activeSession)) {
       streamAbort.abort();
@@ -951,197 +954,6 @@ export class SandboxExecutionService {
       this.deps.clearPendingPermissions(sessionId);
       activeSession.pendingPermission = null;
     }
-  }
-
-  private collectHostSkillsRoots(
-    env: Record<string, string | undefined>,
-    cwdMapping: SandboxCwdMapping,
-    systemPrompt: string
-  ): string[] {
-    const candidates: string[] = [];
-    const pushCandidate = (candidate?: string | null) => {
-      if (!candidate) return;
-      const resolved = path.resolve(candidate);
-      if (!candidates.includes(resolved)) {
-        candidates.push(resolved);
-      }
-    };
-
-    pushCandidate(env.SKILLS_ROOT);
-    pushCandidate(env.LUMIAI_SKILLS_ROOT);
-    for (const root of this.extractHostSkillRootsFromPrompt(systemPrompt)) {
-      pushCandidate(root);
-    }
-    pushCandidate(getSkillsRoot());
-
-    if (process.platform === 'win32') {
-      pushCandidate(path.join(process.resourcesPath ?? '', 'skills'));
-      pushCandidate(path.join(process.resourcesPath ?? '', 'skills'));
-      pushCandidate(path.join(process.cwd?.() ?? '', 'skills'));
-    } else {
-      pushCandidate(path.join(process.resourcesPath ?? '', 'skills'));
-      pushCandidate(path.join(process.cwd?.() ?? '', 'skills'));
-    }
-
-    pushCandidate(path.join(cwdMapping.hostPath, 'skills'));
-    pushCandidate(path.join(cwdMapping.hostPath, 'skills'));
-
-    return candidates.filter((candidate) => this.isDirectory(candidate));
-  }
-
-  private collectSandboxSkillEntries(
-    hostSkillsRoots: string[],
-    guestSkillsRoot: string
-  ): SandboxSkillEntry[] {
-    const bySkillId = new Map<string, string>();
-    const orderedSkillIds: string[] = [];
-
-    const upsertSkill = (skillId: string, hostPath: string) => {
-      if (bySkillId.has(skillId)) {
-        const index = orderedSkillIds.indexOf(skillId);
-        if (index >= 0) {
-          orderedSkillIds.splice(index, 1);
-        }
-      }
-      bySkillId.set(skillId, hostPath);
-      orderedSkillIds.push(skillId);
-    };
-
-    const collectFromSkillDir = (skillDir: string) => {
-      const skillPath = path.join(skillDir, 'SKILL.md');
-      if (!fs.existsSync(skillPath)) {
-        return;
-      }
-      const skillId = path.basename(skillDir);
-      if (!skillId) {
-        return;
-      }
-      upsertSkill(skillId, path.resolve(skillDir));
-    };
-
-    for (const root of hostSkillsRoots) {
-      const resolvedRoot = path.resolve(root);
-      if (!this.isDirectory(resolvedRoot)) {
-        continue;
-      }
-
-      // Root itself can be a skill directory.
-      collectFromSkillDir(resolvedRoot);
-
-      let entries: fs.Dirent[];
-      try {
-        entries = fs.readdirSync(resolvedRoot, { withFileTypes: true });
-      } catch {
-        continue;
-      }
-
-      for (const entry of entries) {
-        if (!entry.isDirectory() && !entry.isSymbolicLink()) {
-          continue;
-        }
-        collectFromSkillDir(path.join(resolvedRoot, entry.name));
-      }
-    }
-
-    return orderedSkillIds.map((skillId, index) => {
-      const hostPath = bySkillId.get(skillId)!;
-      const guestPath = `${guestSkillsRoot}/${skillId}`.replace(/\/+/g, '/');
-      return {
-        skillId,
-        hostPath,
-        guestPath,
-        mountTag: `${SANDBOX_SKILLS_MOUNT_TAG}${index}`,
-      };
-    });
-  }
-
-  private resolveSandboxSkillsConfig(
-    hostSkillsRoots: string[],
-    runtimePlatform: string
-  ): {
-    guestSkillsRoot: string | null;
-    skillEntries: SandboxSkillEntry[];
-    extraMounts: SandboxExtraMount[];
-    skillMounts: Record<string, { tag: string; guestPath: string }>;
-    rootMounts: SandboxSkillRootMount[];
-  } {
-    const guestSkillsRoot = runtimePlatform === 'win32'
-      ? SANDBOX_SKILLS_GUEST_PATH_WINDOWS
-      : SANDBOX_SKILLS_GUEST_PATH;
-    const skillEntries = this.collectSandboxSkillEntries(hostSkillsRoots, guestSkillsRoot);
-    if (skillEntries.length === 0) {
-      return {
-        guestSkillsRoot: null,
-        skillEntries: [],
-        extraMounts: [],
-        skillMounts: {},
-        rootMounts: [],
-      };
-    }
-
-    if (runtimePlatform === 'win32') {
-      // Windows sandbox uses virtio-serial sync instead of 9p mounts.
-      return {
-        guestSkillsRoot,
-        skillEntries,
-        extraMounts: [],
-        skillMounts: {},
-        rootMounts: [],
-      };
-    }
-
-    const keyOf = (target: string): string => (
-      process.platform === 'win32' ? target.toLowerCase() : target
-    );
-    const entryRoots = new Set<string>();
-    for (const entry of skillEntries) {
-      entryRoots.add(path.resolve(path.dirname(entry.hostPath)));
-    }
-
-    const mountHostRoots: string[] = [];
-    const seenMountRoots = new Set<string>();
-    const pushMountRoot = (candidate: string) => {
-      const resolved = path.resolve(candidate);
-      if (!entryRoots.has(resolved) || !this.isDirectory(resolved)) {
-        return;
-      }
-      const key = keyOf(resolved);
-      if (seenMountRoots.has(key)) {
-        return;
-      }
-      seenMountRoots.add(key);
-      mountHostRoots.push(resolved);
-    };
-
-    for (const root of hostSkillsRoots) {
-      pushMountRoot(root);
-    }
-    for (const root of entryRoots) {
-      pushMountRoot(root);
-    }
-
-    const rootMounts = mountHostRoots.map<SandboxSkillRootMount>((hostRoot, index) => ({
-      hostRoot,
-      guestRoot: index === 0 ? guestSkillsRoot : `${guestSkillsRoot}-roots/${index}`,
-      mountTag: `${SANDBOX_SKILLS_MOUNT_TAG}${index}`,
-    }));
-
-    const extraMounts = rootMounts.map(({ hostRoot, mountTag }) => ({ hostPath: hostRoot, mountTag }));
-    const skillMounts = rootMounts.reduce<Record<string, { tag: string; guestPath: string }>>((acc, entry, index) => {
-      acc[`skillsRoot${index}`] = {
-        tag: entry.mountTag,
-        guestPath: entry.guestRoot,
-      };
-      return acc;
-    }, {});
-
-    return {
-      guestSkillsRoot,
-      skillEntries,
-      extraMounts,
-      skillMounts,
-      rootMounts,
-    };
   }
 
   private buildSandboxEnv(
@@ -1223,99 +1035,6 @@ export class SandboxExecutionService {
     return sandboxEnv;
   }
 
-  private isDirectory(target: string): boolean {
-    try {
-      return fs.statSync(target).isDirectory();
-    } catch {
-      return false;
-    }
-  }
-
-  private extractHostSkillRootsFromPrompt(prompt: string): string[] {
-    const roots: string[] = [];
-    const patterns = [
-      /Skill root:\s*([^\s\n]+)/gi,
-      /技能根目录[：:]\s*([^\s\n]+)/gi,
-      /Skills directory:\s*([^\s\n]+)/gi,
-    ];
-    for (const pattern of patterns) {
-      let match;
-      while ((match = pattern.exec(prompt)) !== null) {
-        if (match[1]) {
-          roots.push(match[1]);
-        }
-      }
-    }
-    return roots;
-  }
-
-  private enforceSandboxWorkspacePrompt(systemPrompt: string, guestPath: string): string {
-    if (!guestPath || guestPath === '/workspace' || guestPath === '/workspace/project') {
-      return systemPrompt;
-    }
-    // Only add the workspace note if not already present
-    const workspaceNote = `Working directory: ${guestPath}`;
-    if (systemPrompt.includes(workspaceNote)) {
-      return systemPrompt;
-    }
-    return `${workspaceNote}\n\n${systemPrompt}`;
-  }
-
-  private resolveAutoRoutingForSandbox(
-    systemPrompt: string,
-    options: {
-      guestSkillsRoot?: string | null;
-      hostSkillsRoots?: string[];
-      hostSkillsRootMounts?: SandboxSkillRootMount[];
-    } = {}
-  ): string | undefined {
-    const guestSkillsRoot = options.guestSkillsRoot?.trim();
-    const { prompt: rewrittenPrompt, hasRewrite } = rewriteSkillReferencesForSandbox(systemPrompt, options);
-    if (!rewrittenPrompt.includes('<available_skills>')) {
-      if (hasRewrite && guestSkillsRoot && !rewrittenPrompt.includes('Sandbox path note: Skills are mounted at')) {
-        return [
-          `Sandbox path note: Skills are mounted at \`${guestSkillsRoot}\`.`,
-          rewrittenPrompt,
-        ].join('\n\n');
-      }
-      return rewrittenPrompt;
-    }
-
-    const skillBlockRe = /<available_skills>([\s\S]*?)<\/available_skills>/;
-    const match = rewrittenPrompt.match(skillBlockRe);
-    if (!match) return rewrittenPrompt;
-
-    // Prefer keeping the original auto-routing flow (select one skill by description,
-    // then read it) and only rewrite skill locations to sandbox paths.
-    if (guestSkillsRoot) {
-      let hasLocationRewrite = false;
-      const rewritten = rewrittenPrompt.replace(
-        /<location>(.*?)<\/location>/g,
-        (_fullMatch: string, rawLocation: string) => {
-          const mapped = rewriteSkillLocationForSandbox(rawLocation, options);
-          if (!mapped) {
-            return `<location>${rawLocation}</location>`;
-          }
-          hasLocationRewrite = true;
-          return `<location>${mapped}</location>`;
-        }
-      );
-
-      if (hasLocationRewrite) {
-        const sandboxPathNote = `Sandbox path note: Skills are mounted at \`${guestSkillsRoot}\`.`;
-        if (rewritten.includes(sandboxPathNote)) {
-          return rewritten;
-        }
-        return rewritten.replace(
-          '## Skills (mandatory)',
-          `## Skills (mandatory)\n${sandboxPathNote}`
-        );
-      }
-    }
-
-    return rewrittenPrompt;
-  }
-
   private pushStagedAttachmentsToSandbox(
     bridge: VirtioSerialBridge,
     cwd: string,
@@ -1359,180 +1078,6 @@ export class SandboxExecutionService {
         `${guestAttachmentDir}/${file.relativePath}`,
         file.data
       );
-    }
-  }
-
-  private async waitForVmReady(
-    ipcDir: string,
-    childProcess: ChildProcessByStdio<null, Readable, Readable>,
-    timeout: number = 60000,
-    options?: { platform?: string; accelMode?: string }
-  ): Promise<boolean> {
-    const heartbeatPath = path.join(ipcDir, 'heartbeat');
-    const serialLogPath = path.join(ipcDir, 'serial.log');
-    const start = Date.now();
-
-    // Use shorter polling interval for faster response
-    const pollInterval = 100; // 100ms instead of 500ms
-    let heartbeatSeen = false;
-
-    const maxTimeoutOverride = Number.parseInt(
-      process.env.COWORK_SANDBOX_VM_READY_MAX_TIMEOUT_MS ?? '',
-      10
-    );
-    const defaultMaxTimeout =
-      options?.platform === 'win32'
-        ? Math.max(timeout, options?.accelMode === 'tcg' ? 900000 : 420000)
-        : timeout;
-    const maxTimeoutMs =
-      Number.isFinite(maxTimeoutOverride) && maxTimeoutOverride > timeout
-        ? maxTimeoutOverride
-        : defaultMaxTimeout;
-    const shouldAutoExtend = options?.platform === 'win32' && maxTimeoutMs > timeout;
-    const serialActivityWindowMs = 20000;
-    const currentTimeoutMs = timeout;
-    const timeoutExtensionCount = 0;
-    let lastSerialActivityAt = 0;
-    let lastSerialSize = -1;
-    let lastSerialMtimeMs = -1;
-
-    // Detect early VM exit so we fail fast instead of waiting the full timeout
-    let processExited = false;
-    let processExitCode: number | null = null;
-    childProcess.on('close', (code) => {
-      processExited = true;
-      processExitCode = code;
-    });
-
-    while (true) {
-      while (Date.now() - start < currentTimeoutMs) {
-        if (processExited) {
-          console.error(`Sandbox VM process exited prematurely (exit code: ${processExitCode})`);
-          return false;
-        }
-
-        if (shouldAutoExtend) {
-          try {
-            const serialStat = fs.statSync(serialLogPath);
-            if (serialStat.size !== lastSerialSize || serialStat.mtimeMs !== lastSerialMtimeMs) {
-              lastSerialSize = serialStat.size;
-              lastSerialMtimeMs = serialStat.mtimeMs;
-              lastSerialActivityAt = Date.now();
-            }
-          } catch {
-            // serial.log might not exist yet
-          }
-        }
-
-        try {
-          if (fs.existsSync(heartbeatPath)) {
-            const content = fs.readFileSync(heartbeatPath, 'utf8');
-            const data = JSON.parse(content) as { timestamp?: number | string; ipcMounted?: boolean };
-            const timestamp = typeof data.timestamp === 'number'
-              ? data.timestamp
-              : Number.parseInt(String(data.timestamp ?? ''), 10);
-            // Heartbeat is valid if fresh and IPC is mounted (or not explicitly false).
-            if (Number.isFinite(timestamp) && Date.now() - timestamp < 10000 && data.ipcMounted !== false) {
-              const elapsed = Date.now() - start;
-              console.log(`VM is ready, heartbeat received after ${elapsed}ms`);
-              return true;
-            }
-            // Log heartbeat validation failure details (once)
-            if (!heartbeatSeen) {
-              heartbeatSeen = true;
-              const clockDelta = Number.isFinite(timestamp) ? Date.now() - timestamp : null;
-              coworkLog('INFO', 'waitForVmReady', 'Heartbeat found but not yet valid', {
-                timestamp: Number.isFinite(timestamp) ? timestamp : null,
-                ipcMounted: data.ipcMounted ?? null,
-                clockDelta,
-                elapsed: Date.now() - start,
-              });
-            }
-          }
-        } catch {
-          // Not ready yet
-        }
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-      }
-
-      console.error('VM failed to become ready within timeout');
-      return false;
-    }
-  }
-
-  private async readSandboxStream(
-    streamPath: string,
-    onLine: (line: string) => void,
-    signal: AbortSignal
-  ): Promise<void> {
-    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-    let fileHandle: fs.promises.FileHandle | null = null;
-    let position = 0;
-    let buffer = '';
-    const decoder = new StringDecoder('utf8');
-
-    try {
-      while (!signal.aborted) {
-        if (!fileHandle) {
-          if (!fs.existsSync(streamPath)) {
-            await sleep(50); // Reduced from 200ms
-            continue;
-          }
-          fileHandle = await fs.promises.open(streamPath, 'r');
-          position = 0;
-          buffer = '';
-        }
-
-        const stat = await fileHandle.stat();
-        if (stat.size > position) {
-          const length = stat.size - position;
-          const chunk = Buffer.alloc(length);
-          const result = await fileHandle.read(chunk, 0, length, position);
-          position += result.bytesRead;
-          buffer += decoder.write(chunk.subarray(0, result.bytesRead));
-
-          let newlineIndex = buffer.indexOf('\n');
-          while (newlineIndex !== -1) {
-            const line = buffer.slice(0, newlineIndex);
-            buffer = buffer.slice(newlineIndex + 1);
-            if (line.trim()) {
-              onLine(line);
-            }
-            newlineIndex = buffer.indexOf('\n');
-          }
-        } else {
-          await sleep(50); // Reduced from 200ms
-        }
-      }
-    } finally {
-      if (fileHandle) {
-        await fileHandle.close();
-      }
-      buffer += decoder.end();
-      if (buffer.trim()) {
-        onLine(buffer);
-      }
-    }
-  }
-
-  private writeSandboxHostToolResponse(
-    activeSession: ActiveSession,
-    responsesDir: string,
-    requestId: string,
-    payload: Record<string, unknown>
-  ): void {
-    const responsePath = path.join(responsesDir, `${requestId}.host-tool.json`);
-    try {
-      fs.writeFileSync(responsePath, JSON.stringify(payload));
-    } catch (error) {
-      coworkLog('WARN', 'sandbox:hostTool', 'Failed to write host tool response file', {
-        requestId,
-        responsePath,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-    if (activeSession.ipcBridge) {
-      activeSession.ipcBridge.sendHostToolResponse(requestId, payload);
     }
   }
 

@@ -3,14 +3,7 @@ import test from 'node:test';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const skillModule = require('../dist-electron/skillManager.js');
-const testUtils = skillModule.__skillManagerTestUtils;
-
-if (!testUtils) {
-  throw new Error('__skillManagerTestUtils is not available');
-}
-
-const { parseFrontmatter, isTruthy, extractDescription } = testUtils;
+const { parseFrontmatter, isTruthy, extractDescription } = require('../dist-electron/domains/skill/store/registryStore.js');
 
 // ==================== parseFrontmatter ====================
 
